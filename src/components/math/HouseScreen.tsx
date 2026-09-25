@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HouseDef } from '../../math/types';
-import { exercisesOfHouse, EXERCISE_BY_ID } from '../../math/exercises';
+import { bookRef, exercisesOfHouse, EXERCISE_BY_ID } from '../../math/exercises';
 import { isMastered, nextRecommended, prereqsMet, useMathProgress } from '../../math/progress';
 import { sound } from '../../utils/audio';
 import { toFa } from '../../utils/fa';
@@ -31,7 +31,8 @@ export const HouseScreen: React.FC<{ house: HouseDef; onBack: () => void; onHome
               <span className="mx-ex-emoji">{e.emoji}</span>
               <span className="mx-ex-body">
                 <b>{e.title}</b>
-                <small>{lv.icon} {lv.short} · {lv.long}</small>
+                <small>{lv.icon} {lv.short} · {lv.long}{e.page ? ` · 📖 ${bookRef(e)}` : ''}</small>
+                {e.numerals === false && <i className="mx-ex-tag">🗣️ گفتنی با بزرگ‌تر</i>}
                 {parent && <em>🎯 {e.goal}</em>}
                 {!ready && missing.length > 0 && <u>بهتر است اول «{missing[0]}» را بازی کنی</u>}
               </span>

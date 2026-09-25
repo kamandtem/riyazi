@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Choices, Dice, RProps, RED, BLUE, Stage, Tally, TenFrame, Things, frameFill, useWrongs } from '../Visuals';
+import { AnsMode, Choices, Dice, NumAnswer, RProps, RED, BLUE, SideOk, Stage, Tally, TenFrame, Things, frameFill, useWrongs } from '../Visuals';
 import { numWord, toFa } from '../../../utils/fa';
 import { sound } from '../../../utils/audio';
-import { OkArt } from '../../shared/ArtButtons';
+import { ansMode } from '../../../math/generators';
 
 const say = (t: string) => sound.speakPersian(t);
 const countTap = (n: number) => { sound.playCount(n); say(numWord(n)); };
@@ -17,17 +17,17 @@ export const RepView: React.FC<{ rep: string; v: number; emoji?: string; five?: 
 };
 
 /* ---------- لمس کن و بشمار ---------- */
-export const TapCount: React.FC<RProps> = ({ round, answer, solved }) => {
+export const TapCount: React.FC<RProps> = ({ round, def, answer, solved }) => {
   const { n, layout, pos } = round.data;
   const emoji = round.objects![0];
+  const noNum = !def.numerals;
   const [order, setOrder] = useState<number[]>([]);
-  const { wrong, addWrong } = useWrongs<number>();
   const done = order.length === n;
   const tap = (i: number) => {
     if (solved) return;
     if (order.includes(i)) { sound.playGentleHint(); say('این را شمردی'); return; }
     const next = [...order, i]; setOrder(next); countTap(next.length);
-    if (next.length === n) window.setTimeout(() => say('همه چند تا شد؟'), 700);
+    if (next.length === n) window.setTimeout(() => say(noNum ? 'همه چند تا شد؟ بلند بگو' : 'همه چند تا شد؟'), 800);
   };
   return <>
     <Stage className={layout === 'scatter' ? 'mx-scatter' : ''}>
@@ -36,31 +36,30 @@ export const TapCount: React.FC<RProps> = ({ round, answer, solved }) => {
           const k = order.indexOf(i);
           const st = pos ? { left: `${pos[i].x}%`, top: `${pos[i].y}%` } as React.CSSProperties : undefined;
           return <button key={i} type="button" style={st} className={`mx-obj ${k >= 0 ? 'counted' : ''}`} onClick={() => tap(i)}>
-            <span>{emoji}</span>{k >= 0 && <em>{toFa(k + 1)}</em>}
+            <span>{emoji}</span>{k >= 0 && (noNum ? <em className="dot" /> : <em>{toFa(k + 1)}</em>)}
           </button>;
         })}
       </div>
     </Stage>
-    {done ? <><p className="mx-ask">همه چند تا؟</p><Choices options={round.options!} wrong={wrong} disabled={solved}
-      onPick={v => { if (v === n) answer(true); else { addWrong(v); answer(false, 'عدد آخری که گفتی، یعنی همه.'); } }} /></>
-      : <p className="mx-hint-line">👆 {toFa(order.length)} تا شمردی</p>}
+    {done ? <><p className="mx-ask">همه چند تا؟</p><NumAnswer n={n} options={round.options} mode={ansMode(def) as AnsMode} solved={solved} answer={answer} hint="عدد آخری که گفتی، یعنی همه." /></>
+      : <p className="mx-hint-line">👆 روی هر کدام بزن و بلند بشمار</p>}
   </>;
 };
 
 /* ---------- سریع بگو ---------- */
-export const Subitize: React.FC<RProps> = ({ round, answer, solved }) => {
+export const Subitize: React.FC<RProps> = ({ round, def, answer, solved }) => {
   const { n, pattern, flashMs } = round.data;
   const [phase, setPhase] = useState<'ready' | 'show' | 'hidden'>('ready');
-  const { wrong, addWrong } = useWrongs<number>();
   const show = () => { sound.playPop(); setPhase('show'); window.setTimeout(() => setPhase('hidden'), flashMs); };
+  const view = (small?: boolean) => pattern === 'dice' ? <Dice n={n} small={small} /> : pattern === 'objects' ? <Things n={n} emoji={round.objects?.[0] || '🍎'} className={small ? 'small' : 'big'} /> : <TenFrame fill={frameFill(n)} small={small} />;
   return <>
     <Stage className="mx-center">
       {phase === 'ready' && <button type="button" className="mx-big-btn" onClick={show}>👀 نشانم بده</button>}
-      {phase === 'show' && (pattern === 'dice' ? <Dice n={n} /> : <TenFrame fill={frameFill(n)} />)}
-      {phase === 'hidden' && <div className="mx-cover">❓<button type="button" className="mx-link" onClick={show}>یک بار دیگر ببینم</button></div>}
-      {solved && (pattern === 'dice' ? <Dice n={n} small /> : <TenFrame fill={frameFill(n)} small />)}
+      {phase === 'show' && view()}
+      {phase === 'hidden' && !solved && <div className="mx-cover">❓<button type="button" className="mx-link" onClick={show}>یک بار دیگر ببینم</button></div>}
+      {solved && view(true)}
     </Stage>
-    {phase === 'hidden' && <Choices options={round.options!} wrong={wrong} disabled={solved} onPick={v => { if (v === n) answer(true); else { addWrong(v); answer(false, 'دوباره نگاه کن، نقطه‌ها را دسته‌دسته ببین.'); } }} />}
+    {phase === 'hidden' && <NumAnswer n={n} options={round.options} mode={ansMode(def) as AnsMode} solved={solved} answer={answer} hint="دوباره نگاه کن، دسته‌دسته ببین." />}
   </>;
 };
 
@@ -107,26 +106,26 @@ export const CountOn: React.FC<RProps> = ({ round, answer, solved }) => {
   </>;
 };
 
-/* ---------- بساز ---------- */
+/* ---------- بساز / چوب‌خط بکش ---------- */
 export const BuildSet: React.FC<RProps> = ({ round, answer, solved }) => {
-  const { n, rep } = round.data;
+  const { n, rep, target } = round.data;
   const emoji = round.objects?.[0] || '🍎';
   const [c, setC] = useState(0);
   const cap = rep === 'tally' ? 20 : 10;
-  const add = () => { if (c >= cap || solved) return; const v = c + 1; setC(v); sound.playSnap(); countTap(v); };
+  const add = () => { if (c >= cap || solved) return; const v = c + 1; setC(v); sound.playSnap(); countTap(v); if (rep === 'tally' && v % 5 === 0) window.setTimeout(() => say('پنجمی را کج روی چهار تا کشیدیم'), 500); };
   const rem = () => { if (c <= 0 || solved) return; setC(c - 1); sound.playPop(); };
+  const board = rep === 'tally'
+    ? <div className="mx-tally-board" onClick={rem}><Tally n={c} animateLast />{c === 0 && <small>هنوز چیزی نکشیدی</small>}</div>
+    : <div className="mx-plate">{Array.from({ length: 10 }, (_, i) => <button key={i} type="button" className="mx-plate-cell" onClick={() => i < c && rem()}>{i < c ? emoji : ''}</button>)}</div>;
   return <>
-    <div className="mx-target"><b>{toFa(n)}</b><small>{rep === 'tally' ? 'چوب‌خط' : 'تا'}</small></div>
-    <Stage className="mx-center">
-      {rep === 'tally'
-        ? <div className="mx-tally-board" onClick={rem}><Tally n={c} />{c === 0 && <small>هنوز چیزی نکشیدی</small>}</div>
-        : <div className="mx-plate">{Array.from({ length: 10 }, (_, i) => <button key={i} type="button" className="mx-plate-cell" onClick={() => i < c && rem()}>{i < c ? emoji : ''}</button>)}</div>}
-    </Stage>
+    {target === 'objects'
+      ? <Stage className="mx-model-stage"><div className="mx-model" dir="ltr"><div className="mx-model-src"><Things n={n} emoji={emoji} /></div><span className="mx-model-arrow">➜</span><div className="mx-model-dst">{board}</div></div></Stage>
+      : <><div className="mx-target"><b>{toFa(n)}</b><small>{rep === 'tally' ? 'چوب‌خط' : 'تا'}</small></div><Stage className="mx-center">{board}</Stage></>}
     <div className="mx-tools">
       <button type="button" className="mx-tool add" onClick={add}>{rep === 'tally' ? '✏️ یک چوب‌خط' : <>🧺 یکی بگذار {emoji}</>}</button>
-      <button type="button" className="mx-tool undo" onClick={rem} disabled={!c}>↩️ یکی بردار</button>
+      <button type="button" className="mx-tool undo" onClick={rem} disabled={!c}>↩️ یکی پاک کن</button>
     </div>
-    <OkArt className="mx-ok" ready={c > 0} caption="تمام شد" onClick={() => { if (solved) return; if (c === n) answer(true); else answer(false, c < n ? 'هنوز کم است، باز هم بگذار.' : 'زیاد شد! یکی بردار.'); }} />
+    <SideOk ready={c > 0} caption="تمام شد" onClick={() => { if (solved) return; if (c === n) answer(true); else answer(false, c < n ? 'هنوز کم است؛ یکی‌یکی جفت کن.' : 'زیاد شد! یکی پاک کن.'); }} />
   </>;
 };
 
@@ -148,20 +147,22 @@ export const MatchRep: React.FC<RProps> = ({ round, answer, solved }) => {
   </>;
 };
 
-/* ---------- یکی آمد / یکی رفت ---------- */
-export const OneMoreLess: React.FC<RProps> = ({ round, answer, solved }) => {
+/* ---------- یکی آمد / یکی رفت / دو تا آمد ---------- */
+export const OneMoreLess: React.FC<RProps> = ({ round, def, answer, solved }) => {
   const { n, op } = round.data;
   const emoji = round.objects![0];
   const [moved, setMoved] = useState(false);
-  const { wrong, addWrong } = useWrongs<number>();
-  useEffect(() => { const t = window.setTimeout(() => { setMoved(true); sound.playSnap(); }, 1500); return () => window.clearTimeout(t); }, []);
-  const shown = op > 0 ? (moved ? n + 1 : n) : n;
+  useEffect(() => { const t = window.setTimeout(() => { setMoved(true); sound.playSnap(); }, 1600); return () => window.clearTimeout(t); }, []);
+  const total = op > 0 ? n + op : n;
+  const r = n + op;
   return <>
     <Stage>
-      <div className="mx-tag">اینجا {toFa(n)} تا بود</div>
-      <div className="mx-row-box">{Array.from({ length: shown }, (_, i) => <span key={i} className={`mx-obj still ${op > 0 && moved && i === n ? 'arrive' : ''} ${op < 0 && moved && i === n - 1 ? 'leave' : ''}`}><span>{emoji}</span></span>)}</div>
+      {def.numerals ? <div className="mx-tag">اینجا {toFa(n)} تا بود</div> : <div className="mx-tag">{op > 0 ? 'خوب نگاه کن، کسی می‌آید!' : 'خوب نگاه کن، کسی می‌رود!'}</div>}
+      <div className="mx-row-box">{Array.from({ length: total }, (_, i) => {
+        const cls = op > 0 ? (i >= n ? (moved ? 'arrive' : 'hide') : '') : (moved && i >= n + op ? 'leave' : '');
+        return <span key={i} className={`mx-obj still ${cls}`}><span>{emoji}</span></span>; })}</div>
     </Stage>
-    {moved ? <Choices options={round.options!} wrong={wrong} disabled={solved} onPick={v => { if (v === n + op) answer(true); else { addWrong(v); answer(false, op > 0 ? `یکی بیشتر از ${toFa(n)}؟` : `یکی کمتر از ${toFa(n)}؟`); } }} />
+    {moved ? <NumAnswer n={r} options={round.options} mode={ansMode(def) as AnsMode} solved={solved} answer={answer} hint={op > 0 ? 'قبلی‌ها را دوباره نشمار؛ از همان‌جا ادامه بده.' : 'آن‌هایی را که مانده‌اند نگاه کن.'} />
       : <p className="mx-hint-line">خوب نگاه کن... 👀</p>}
   </>;
 };

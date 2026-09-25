@@ -16,7 +16,7 @@ export const Token: React.FC<{ t: PatternToken; size?: number }> = ({ t, size = 
     : t.v === 'star' ? <polygon points="50,5 61,38 96,38 68,59 78,93 50,72 22,93 32,59 4,38 39,38" fill={c} />
     : t.v === 'heart' ? <path d="M50 90 C10 60 2 35 20 20 C35 8 48 18 50 28 C52 18 65 8 80 20 C98 35 90 60 50 90Z" fill={c} />
     : <circle cx="50" cy="50" r="42" fill={c} />;
-  return <svg viewBox="0 0 100 100" style={s} className="mx-token">{path}</svg>;
+  return <svg viewBox="0 0 100 100" style={{ ...s, maxWidth: '82%', maxHeight: '82%' }} className="mx-token">{path}</svg>;
 };
 
 export const Pattern: React.FC<RProps> = ({ round, answer, solved }) => {
@@ -24,7 +24,8 @@ export const Pattern: React.FC<RProps> = ({ round, answer, solved }) => {
   const { wrong, addWrong } = useWrongs<number>();
   useEffect(() => { if (d.kind === 'motion') say(d.seq.map((t: PatternToken) => MOTION_NAMES[t.v]).join('، ')); }, []); // eslint-disable-line
   const ok = (i: number) => { if (i === round.answer) answer(true); else { addWrong(i); answer(false, 'بلند بگو: ' + (d.kind === 'motion' ? 'حرکت‌ها را' : 'قطعه‌ها را') + ' یکی‌یکی. چه چیزی تکرار می‌شود؟'); } };
-  const seqView = (clickable: boolean) => <div className="mx-pattern" dir="ltr">
+  const cellsN = d.seq.length + (d.mode === 'next' ? 1 : 0);
+  const seqView = (clickable: boolean) => <div className="mx-pattern" dir="ltr" style={{ '--n': cellsN } as React.CSSProperties}>
     {d.seq.map((t: PatternToken, i: number) => {
       if (d.mode === 'gap' && i === d.gap) return <span key={i} className="mx-pat-cell hole">{solved ? <Token t={t} /> : '؟'}</span>;
       const shown = d.mode === 'wrong' && solved && i === round.answer ? d.correct : t;
@@ -34,14 +35,14 @@ export const Pattern: React.FC<RProps> = ({ round, answer, solved }) => {
     })}
     {d.mode === 'next' && <span className="mx-pat-cell hole">{solved ? <Token t={d.opts[round.answer as number]} /> : '؟'}</span>}
   </div>;
-  if (d.mode === 'wrong') return <Stage>{seqView(true)}</Stage>;
+  if (d.mode === 'wrong') return <><Stage className="mx-full">{seqView(true)}</Stage><p className="mx-hint-line">روی قطعه‌ای بزن که جای درستش نیست</p></>;
   if (d.mode === 'unit') return <>
-    <Stage>{seqView(false)}</Stage>
+    <Stage className="mx-full">{seqView(false)}</Stage>
     <div className="mx-cards">{d.opts.map((o: PatternToken[], i: number) => <button key={i} type="button" disabled={solved || wrong.includes(i)} onClick={() => ok(i)}
       className={`mx-card unit ${wrong.includes(i) ? 'is-wrong' : ''} ${solved && i === round.answer ? 'is-right' : ''}`} dir="ltr">{o.map((t, k) => <Token key={k} t={t} size={34} />)}</button>)}</div>
   </>;
   return <>
-    <Stage>{seqView(false)}</Stage>
+    <Stage className="mx-full">{seqView(false)}</Stage>
     <Choices options={d.opts.map((_: any, i: number) => i)} wrong={wrong} disabled={solved} onPick={(_, i) => ok(i)} render={(_, i) => <Token t={d.opts[i]} />} />
   </>;
 };
@@ -130,5 +131,35 @@ export const LatinSquare: React.FC<RProps> = ({ round, answer, solved }) => {
     </Stage>
     <p className="mx-ask">خانهٔ خالی را انتخاب کن و بعد این‌جا بزن</p>
     <div className="mx-choices">{Array.from({ length: n }, (_, s) => <button key={s} type="button" className="mx-choice" disabled={solved} onClick={() => put(s)}><Sym s={s} kind={symbols} /></button>)}</div>
+  </>;
+};
+
+
+/* ---------- الگو با رنگ کردن خانه‌ها، همه در یک ردیف (کتاب ص ۴، ۷، ۱۰) ---------- */
+export const PatternStrip: React.FC<RProps> = ({ round, answer, solved }) => {
+  const { seq, shown, palette, unitLen } = round.data as { seq: string[]; shown: number; palette: string[]; unitLen: number };
+  const [filled, setFilled] = useState<string[]>([]);
+  const [color, setColor] = useState<string>(palette[0]);
+  const cur = shown + filled.length;
+  const tap = (i: number) => {
+    if (solved || i < cur) return;
+    if (i > cur) { sound.playGentleHint(); say('به ترتیب! اول خانهٔ چشمک‌زن'); return; }
+    if (color === seq[i]) {
+      const nf = [...filled, color]; setFilled(nf); sound.playSnap();
+      if (shown + nf.length === seq.length) window.setTimeout(() => answer(true), 350);
+    } else answer(false, 'بخش تکرارشونده را بلند بگو؛ بعدی چه رنگی است؟');
+  };
+  return <>
+    <Stage className="mx-full">
+      <div className="mx-strip" dir="ltr" style={{ '--n': seq.length } as React.CSSProperties}>
+        {seq.map((c, i) => {
+          const val = i < shown ? c : filled[i - shown];
+          return <button key={i} type="button" onClick={() => tap(i)} className={`mx-strip-cell ${i < shown ? 'given' : ''} ${i === cur && !solved ? 'now' : ''} ${i > 0 && i % unitLen === 0 && i <= shown ? 'unit-edge' : ''}`}
+            style={val ? { background: val } : undefined} aria-label="خانه" />;
+        })}
+      </div>
+    </Stage>
+    <div className="mx-palette">{palette.map(c => <button key={c} type="button" className={`mx-pal ${color === c ? 'on' : ''}`} style={{ background: c }} onClick={() => { setColor(c); sound.playPop(); }} aria-label="رنگ" />)}</div>
+    <p className="mx-hint-line">🎨 رنگ را انتخاب کن، بعد روی خانهٔ چشمک‌زن بزن</p>
   </>;
 };

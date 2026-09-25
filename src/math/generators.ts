@@ -13,6 +13,19 @@ const ramp = (min: number, max: number, i: number, total: number) => {
   const t = total <= 1 ? 1 : i / (total - 1);
   return Math.max(min, Math.round(min + (max - min) * (0.45 + 0.55 * t)));
 };
+/** بالا رفتنِ پلّه‌ای: دور اول ساده‌ترین، دور آخر سخت‌ترین (با کمی تنوع) */
+export const stepUp = (min: number, max: number, i: number, total: number) => {
+  const t = total <= 1 ? 1 : i / (total - 1);
+  const cap = Math.round(min + (max - min) * t);
+  return rand(Math.max(min, cap - 1), Math.max(min, cap));
+};
+/** نوع جواب: پیش از تم ۷ کتاب پیش‌فرض «گفتن» است */
+export const ansMode = (def: ExerciseDef): string => def.params.answer || (def.numerals ? 'numeral' : 'oral');
+const ansOptions = (n: number, def: ExerciseDef) => {
+  const m = ansMode(def);
+  if (m === 'hands' || m === 'dots') return nearOptions(n, 3, n === 0 ? 0 : 1, n > 5 ? 10 : 5);
+  return nearOptions(n, 3, 0, 20);
+};
 const obj = (def: ExerciseDef, fallback = FRUITS) => pick(def.objects?.length ? def.objects : fallback);
 const scatter = (n: number) => {
   // جای تصادفی بدون هم‌پوشانی (درصدی از قاب)
@@ -47,14 +60,14 @@ const fa = toFa;
 export const GENERATORS: Record<string, Gen> = {
   tapCount(def, i, total) {
     const { min, max, layout } = def.params;
-    const n = rand(min, ramp(min, max, i, total));
-    return { question: 'هر کدام را لمس کن و بشمار.', objects: [obj(def)], answer: n, options: nearOptions(n, 3, 1, 20),
+    const n = stepUp(min, max, i, total);
+    return { question: 'هر کدام را لمس کن و بلند بشمار.', objects: [obj(def)], answer: n, options: ansOptions(n, def),
       data: { n, layout, pos: layout === 'scatter' ? scatter(n) : null } };
   },
   subitize(def, i, total) {
-    const n = rand(def.params.min, ramp(def.params.min + 2, def.params.max, i, total));
-    const pattern = i % 2 === 0 ? 'dice' : 'frame';
-    return { question: 'خوب نگاه کن! چند تا بود؟', answer: n, options: nearOptions(n, 3, 1, 10), data: { n, pattern, flashMs: def.params.flashMs } };
+    const n = stepUp(def.params.min, def.params.max, i, total);
+    const pattern = def.params.max <= 4 ? pick(['dice', 'objects']) : i % 2 === 0 ? 'dice' : 'frame';
+    return { question: 'خوب نگاه کن! چند تا بود؟', objects: [obj(def, ALL_OBJ)], answer: n, options: ansOptions(n, def), data: { n, pattern, flashMs: def.params.flashMs } };
   },
   countCheck(def) {
     const n = rand(def.params.min, def.params.max);
@@ -74,8 +87,9 @@ export const GENERATORS: Record<string, Gen> = {
       options: nearOptions(s + k, 3, 1, 20), data: { s, k } };
   },
   buildSet(def, i, total) {
-    const { min, max, rep } = def.params;
-    const n = rand(min, ramp(min, max, i, total));
+    const { min, max, rep, target } = def.params;
+    const n = stepUp(min, max, i, total);
+    if (target === 'objects') return { question: rep === 'tally' ? 'به تعداد حیوان‌ها چوب‌خط بکش.' : 'به همین تعداد بگذار.', objects: [obj(def)], answer: n, data: { n, rep, target } };
     return { question: rep === 'tally' ? `${fa(n)} تا چوب‌خط بکش.` : `${fa(n)} تا بگذار توی بشقاب.`, speak: rep === 'tally' ? `${numWord(n)} تا چوب‌خط بکش` : `${numWord(n)} تا بگذار توی بشقاب`,
       objects: [obj(def)], answer: n, data: { n, rep } };
   },
@@ -91,11 +105,14 @@ export const GENERATORS: Record<string, Gen> = {
     const cards = vals.map((v, k) => ({ v, rep: repsFor[k % repsFor.length] }));
     return { question: `کدام کارت ${fa(n)} را نشان می‌دهد؟`, speak: `کدام کارت ${numWord(n)} را نشان می‌دهد؟`, objects: [obj(def)], answer: cards.findIndex(c => c.v === n), data: { n, cards } };
   },
-  oneMoreLess(def) {
-    const n = rand(def.params.min, def.params.max);
-    const op = n <= 1 ? 1 : pick([1, -1]);
-    return { question: op > 0 ? 'یکی دیگر آمد! حالا چند تا شد؟' : 'یکی رفت! حالا چند تا ماند؟', objects: [obj(def, ANIMALS)], answer: n + op,
-      options: nearOptions(n + op, 3, 0, 20), data: { n, op } };
+  oneMoreLess(def, i, total) {
+    const ops: number[] = def.params.ops || [1, -1];
+    let op = pick(ops);
+    const n = Math.max(op < 0 ? -op : 1, stepUp(def.params.min, def.params.max, i, total));
+    if (n + op < 0) op = Math.abs(op);
+    const r = n + op;
+    const q = op === 1 ? 'یکی دیگر آمد! حالا چند تا شد؟' : op === -1 ? 'یکی رفت! حالا چند تا ماند؟' : op > 0 ? 'دو تای دیگر آمدند! حالا چند تا شد؟' : 'دو تا رفتند! حالا چند تا ماند؟';
+    return { question: q, objects: [obj(def, ANIMALS)], answer: r, options: ansOptions(r, def), data: { n, op } };
   },
   sequenceGap(def, i, total) {
     const p = def.params;
@@ -152,7 +169,14 @@ export const GENERATORS: Record<string, Gen> = {
     return { question: 'علامت درست را بگذار.', answer: ans, options: ['<', '=', '>'], data: { a, b, pics, ea: obj(def), eb: obj(def) } };
   },
   tensOnes(def, i, total) {
-    const n = rand(def.params.min, ramp(def.params.min, def.params.max, i, total));
+    const n = stepUp(def.params.min, def.params.max, i, total);
+    if (def.params.mode === 'read') {
+      const sw = (n % 10) * 10 + Math.floor(n / 10);
+      const set = new Set<number>([n]);
+      if (sw !== n && sw >= 10 && sw <= 99) set.add(sw);
+      for (const d of shuffle([1, -1, 10, -10])) { if (set.size >= 3) break; if (n + d >= 10 && n + d <= 99) set.add(n + d); }
+      return { question: 'چند ده‌تایی و چند یکی؟ این چه عددی است؟', answer: n, options: shuffle([...set]), data: { n, mode: 'read' } };
+    }
     return def.params.mode === 'bundle'
       ? { question: 'ده تا چوب را انتخاب کن و ببندشان.', answer: n, options: nearOptions(n, 3, 10, 20), data: { n, mode: 'bundle' } }
       : { question: `عدد ${fa(n)} را با بسته‌های ده‌تایی و یکی بساز.`, speak: `عدد ${numWord(n)} را بساز`, answer: n, data: { n, mode: 'build' } };
@@ -227,7 +251,7 @@ export const GENERATORS: Record<string, Gen> = {
   },
   shapeCorners(def, i) {
     const SH = [{ id: 'triangle', c: 3 }, { id: 'square', c: 4 }, { id: 'rect', c: 4 }, { id: 'pentagon', c: 5 }, { id: 'hexagon', c: 6 }];
-    if (def.params.mode === 'count') { const s = SH[i < 2 ? i : rand(0, SH.length - 1)]; return { question: 'روی هر گوشه بزن و بشمار.', answer: s.c, options: nearOptions(s.c, 3, 0, 8), data: { shape: s.id, corners: s.c, rot: rand(-25, 25), color: pick(COLORS) } }; }
+    if (def.params.mode === 'count') { const s = SH[i < 3 ? [0, 1, 0][i] : rand(0, SH.length - 1)]; return { question: 'روی هر گوشه بزن و بشمار.', answer: s.c, options: nearOptions(s.c, 3, 0, 8), data: { shape: s.id, corners: s.c, rot: rand(-25, 25), color: pick(COLORS) } }; }
     const target = pick([3, 4, 5, 6]);
     const right = pick(SH.filter(s => s.c === target));
     const others = shuffle(SH.filter(s => s.c !== target)).slice(0, 2);
@@ -247,18 +271,20 @@ export const GENERATORS: Record<string, Gen> = {
     return { question: 'گیره‌ها را پشت سر هم زیر مداد بگذار. مداد چند گیره است؟', answer: L, options: nearOptions(L, 3, 1, 12), data: { L, color: pick(COLORS) } };
   },
   addCombine(def, i, total) {
-    const maxSum = ramp(5, def.params.maxSum, i, total);
-    const a = rand(1, maxSum - 1), b = rand(1, maxSum - a);
-    return { question: def.params.rep === 'tenframe' ? `${fa(a)} خانه آبی و ${fa(b)} خانه سبز رنگ کن.` : 'دو دسته را با هم یکی کن. همه چند تا شد؟', objects: [obj(def)], answer: a + b,
-      options: nearOptions(a + b, 3, 1, 20), data: { a, b, rep: def.params.rep } };
+    const sum = stepUp(def.params.minSum || 3, def.params.maxSum, i, total);
+    const a = rand(1, sum - 1), b = sum - a;
+    const q = def.params.rep === 'tenframe' ? `${fa(a)} خانه آبی و ${fa(b)} خانه سبز رنگ کن.` : !def.numerals ? 'این دسته و آن دسته، روی هم چند تا می‌شود؟' : 'دو دسته را با هم یکی کن. همه چند تا شد؟';
+    return { question: q, objects: [obj(def)], answer: a + b, options: ansOptions(a + b, def), data: { a, b, rep: def.params.rep } };
   },
   takeAway(def, i, total) {
-    const n = rand(3, ramp(4, def.params.max, i, total));
-    const k = rand(1, n);
+    const n = stepUp(3, def.params.max, i, total);
+    const k = i < 2 ? 1 : rand(1, i > total / 2 ? n : n - 1);
     const e = def.params.rep === 'objects' ? pick(['🐦', '🎈', '🐟', '🦋']) : '';
     const verb = e === '🐦' || e === '🦋' ? 'پرواز کردند' : e === '🎈' ? 'ترکیدند' : 'رفتند';
-    return { question: def.params.rep === 'tally' ? `${fa(k)} تا چوب‌خط را خط بزن. چند تا ماند؟` : `${fa(k)} تا ${verb}. روی ${fa(k)} تا بزن!`, objects: [e], answer: n - k,
-      options: nearOptions(n - k, 3, 0, 20), data: { n, k, rep: def.params.rep, verb } };
+    const q = !def.numerals
+      ? (def.params.rep === 'tally' ? `${numWord(k)} تا چوب‌خط را خط بزن. چند تا ماند؟` : `${numWord(k)} تا ${verb}. روی همان‌ها بزن!`)
+      : (def.params.rep === 'tally' ? `${fa(k)} تا چوب‌خط را خط بزن. چند تا ماند؟` : `${fa(k)} تا ${verb}. روی ${fa(k)} تا بزن!`);
+    return { question: q, objects: [e], answer: n - k, options: ansOptions(n - k, def), data: { n, k, rep: def.params.rep, verb } };
   },
   expression(def, i, total) {
     const op = def.params.op;
@@ -270,13 +296,28 @@ export const GENERATORS: Record<string, Gen> = {
   },
   lineJump(def, i, total) {
     const p = def.params;
-    const op = p.op === 'mix' ? pick(['+', '-']) : p.op;
+    if (p.mode === 'hop') {
+      // آشنایی: پرش‌های یک‌خانه‌ای از صفر یا یک
+      const start = i < 3 ? 0 : i % 2 ? 1 : 0;
+      const hops = i < 2 ? 1 : i < 4 ? 2 : 3;
+      const q = start === 0 ? 'قورباغه روی صفر است. هر بار یک خانه جلو بپر!' : 'قورباغه روی یک است. هر بار یک خانه جلو بپر!';
+      return { question: hops === 1 ? q.replace('هر بار ', '') : q, answer: start + hops, data: { mode: 'hop', start, hops, max: p.max } };
+    }
     const max = p.max;
-    const k = rand(1, Math.min(5, ramp(2, 5, i, total)));
-    const a = op === '+' ? rand(0, max - k) : rand(k, max);
-    const r = op === '+' ? a + k : a - k;
-    return { question: p.guided ? `قورباغه روی ${fa(a)} است. ${fa(k)} تا ${op === '+' ? 'جلو' : 'عقب'} بپر!` : `${fa(a)} ${op === '+' ? '+' : '−'} ${fa(k)} را روی محور بپر.`, answer: r,
-      options: nearOptions(r, 3, 0, max), data: { a, k, op, max, guided: p.guided } };
+    const lineMax = p.lineMax || (max <= 10 ? 10 : 20);
+    let steps: number[];
+    if (p.terms === 3) {
+      const a = rand(1, 4), b = rand(1, Math.min(4, max - a - 1)), c = rand(1, Math.max(1, Math.min(4, max - a - b)));
+      steps = [a, b, c];
+    } else {
+      const op = p.op === 'mix' ? pick(['+', '-']) : p.op;
+      const top = stepUp(p.minSum || 3, max, i, total);
+      if (op === '+') { const a = rand(1, top - 1); steps = [a, top - a]; }
+      else { const b = rand(1, Math.max(1, Math.min(top - 1, 6))); steps = [top, -b]; }
+    }
+    const r = steps.reduce((s2, v) => s2 + v, 0);
+    const text = steps.map((v, k) => k === 0 ? fa(v) : `${v > 0 ? '+' : '−'} ${fa(Math.abs(v))}`).join(' ');
+    return { question: `${text} را روی محور نشان بده.`, answer: r, options: nearOptions(r, 3, 0, lineMax), data: { mode: 'arcs', steps, max: lineMax } };
   },
   hiddenPart(def, i, total) {
     const n = rand(def.params.min, ramp(def.params.min + 1, def.params.max, i, total));
@@ -310,7 +351,77 @@ export const GENERATORS: Record<string, Gen> = {
     const exprs = shuffle([{ a, b, op: join ? '+' : '-' }, { a, b, op: join ? '-' : '+' }, { a: b, b: a, op: '-' }].filter((e, k, arr) => !(e.op === '-' && e.a < e.b) && arr.findIndex(x => x.a === e.a && x.b === e.b && x.op === e.op) === k));
     return { question: text + ' ' + S.ask, answer: r, options: nearOptions(r, 3, 0, 20), data: { a, b, join, emoji: S.emoji, place: S.place, exprs, mode: def.params.mode } };
   },
+
+  /* ---------- بشمار و رنگ کن / از این‌ها رنگ کن (کتاب ص ۳ و ۹) ---------- */
+  colorCount(def, i, total) {
+    const { min, max, mode, cells = 5 } = def.params;
+    const n = stepUp(min, max, i, total);
+    const color = pick(PAINT);
+    if (mode === 'shapes') {
+      const kind = pick(['circle', 'square', 'triangle', 'star', 'heart']);
+      const pool = Math.min(8, n + rand(2, 3));
+      return { question: 'به تعداد شکل‌های سمت چپ، از شکل‌های سمت راست رنگ کن.', answer: n, data: { n, mode, kind, color, pool } };
+    }
+    return { question: 'بشمار و به همان تعداد خانه رنگ کن.', objects: [obj(def, ALL_OBJ)], answer: n, data: { n, mode: 'cells', cells: Math.max(cells, n + 1), color } };
+  },
+  /* ---------- انگشت‌ها (کتاب ص ۷، ۱۱، ۲۵، ۳۱) ---------- */
+  fingerMatch(def, i, total) {
+    const p = def.params;
+    const e = obj(def, THINGS_OBJ);
+    if (p.mode === 'twoHands') {
+      const a = stepUp(p.min, p.max, i, total), b = rand(p.min, p.max);
+      const [er, el] = shuffle(THINGS_OBJ).slice(0, 2);
+      return { question: 'دستهٔ سمت راست را با دست راست و دستهٔ سمت چپ را با دست چپ نشان بده.', answer: [a, b], data: { mode: 'twoHands', a, b, er, el } };
+    }
+    if (p.mode === 'sum') {
+      const s2 = stepUp(p.minSum || 2, p.maxSum, i, total);
+      const a = rand(Math.max(1, s2 - 5), Math.min(5, s2 - 1)); const b = s2 - a;
+      return { question: 'انگشت‌های این دست و آن دست، روی هم چند تا می‌شود؟', answer: s2, options: ansOptions(s2, def), data: { mode: 'sum', a, b, alt: rand(0, 2) } };
+    }
+    if (p.mode === 'fold') {
+      const a = stepUp(p.min, p.max, i, total);
+      const k = i < 2 ? 1 : rand(1, a - 1);
+      return { question: 'چند تا هستند؟ با انگشت نشان بده. بعد به تعداد رفته‌ها انگشت ببند.', objects: [e], answer: a - k, options: ansOptions(a - k, def), data: { mode: 'fold', a, k } };
+    }
+    const n = stepUp(p.min, p.max, i, total);
+    if (p.mode === 'handSay') {
+      const alt = p.alt && n <= 5 ? rand(0, 2) : 0;
+      return { question: n > 5 ? 'انگشت‌های باز را بشمار. چند تاست؟' : 'این دست چند تا را نشان می‌دهد؟', answer: n, options: ansOptions(n, def), data: { mode: 'handSay', n, alt } };
+    }
+    if (p.mode === 'raise') return { question: 'روی انگشت‌ها بزن تا به تعداد شکل‌ها باز شوند.', objects: [e], answer: n, data: { mode: 'raise', n } };
+    // pick: کدام دست همین تعداد را نشان می‌دهد؟
+    const vals = nearOptions(n, 3, 1, 5);
+    const alts = vals.map(() => (p.alt ? rand(0, 2) : 0));
+    return { question: 'کدام دست همین تعداد را نشان می‌دهد؟', objects: [e], answer: vals.indexOf(n), data: { mode: 'pick', n, vals, alts } };
+  },
+  /* ---------- دسته‌های هم‌تعداد را وصل کن (کتاب ص ۶) ---------- */
+  groupMatch(def, i, total) {
+    const g = def.params.groups || 3;
+    const hi = Math.max(def.params.min + g - 1, stepUp(def.params.min + g - 1, def.params.max, i, total));
+    const counts = shuffle(range(def.params.min, hi)).slice(0, g);
+    const emo = shuffle(ALL_OBJ);
+    const left = counts.map((n, k) => ({ n, e: emo[k] }));
+    const right = shuffle(counts).map((n, k) => ({ n, e: emo[k + g] }));
+    return { question: 'دسته‌هایی را که تعدادشان مثل هم است به هم وصل کن.', answer: counts, data: { left, right } };
+  },
+  /* ---------- الگو با رنگ کردن خانه‌ها، در یک ردیف (کتاب ص ۴) ---------- */
+  patternStrip(def, i) {
+    const units: string[] = def.params.units;
+    const unit = i < 3 ? units[0] : pick(units);
+    const letters = [...new Set(unit.split(''))];
+    const cols = shuffle(PAINT).slice(0, letters.length);
+    const map = Object.fromEntries(letters.map((l, k) => [l, cols[k]]));
+    const len: number = def.params.len + (i > 3 ? 2 : 0);
+    const seq = range(0, len - 1).map(k => map[unit[k % unit.length]]);
+    const shown = Math.min(len - 3, unit.length * 2 + (i < 3 ? 1 : 0));
+    const palette = shuffle([...cols, ...(cols.length < 3 ? [PAINT.find(c => !cols.includes(c))!] : [])]);
+    return { question: 'الگو را پیدا کن و خانه‌های بعدی را به همان ترتیب رنگ کن.', answer: seq.slice(shown), data: { seq, shown, palette, unitLen: unit.length } };
+  },
 };
+
+const PAINT = ['#FF5A5F', '#3FA7F5', '#FFC83D', '#39C47A', '#A46BF5'];
+const ALL_OBJ = [...FRUITS, ...ANIMALS, ...TOYS];
+const THINGS_OBJ = ['🔑', '☂️', '🧤', '👟', '🚗', '🎒', '🧦', '🎈'];
 
 const STORIES = [
   { emoji: '🦆', place: '💧', join: '{a} اردک در آب بودند. {b} اردک دیگر هم آمدند.', leave: '{a} اردک در آب بودند. {b} تا از آب بیرون رفتند.', ask: 'حالا چند اردک در آب است؟' },

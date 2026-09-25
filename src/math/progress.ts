@@ -30,15 +30,8 @@ export function useMathProgress(): MathProgress {
 export const isMastered = (p: MathProgress, id: string) => (p.stars[id] || 0) >= 2;
 export const prereqsMet = (p: MathProgress, id: string) => (EXERCISE_BY_ID[id]?.prerequisite || []).every(r => (p.stars[r] || 0) >= 1);
 
-/** مسیر یادگیری سراسری: ترتیب کتاب (مفهوم عینی ← نمایش ← نماد) نه ترتیب جزیره‌ها */
-export const LEARNING_PATH: string[] = [
-  'count-touch', 'pattern-next', 'build-set', 'one-more-less', 'more-less', 'subitize', 'longer-shorter', 'shape-corners',
-  'count-scatter', 'pattern-gap', 'build-tally', 'match-rep', 'count-on', 'add-combine', 'take-away', 'before-after', 'latin-3',
-  'make-equal', 'count-forward', 'five-and', 'pattern-wrong', 'add-tally', 'take-tally', 'add-frame', 'hidden-part', 'measure-units',
-  'compare-symbol', 'order-cards', 'shape-which', 'count-check', 'add-number', 'sub-number', 'chart-find', 'make-ten', 'line-add', 'line-sub',
-  'pattern-unit', 'count-back', 'add-reps', 'sub-reps', 'bundle-ten', 'chart-fill', 'split-number', 'story-picture', 'latin-4',
-  'pattern-number', 'build-tens', 'chart-move', 'line-expr', 'chart-skip', 'story-expression',
-];
+/** مسیر یادگیری سراسری: به ترتیب صفحه‌های کتاب درسی (نه ترتیب جزیره‌ها) */
+export const LEARNING_PATH: string[] = [...EXERCISES].map((e, i) => ({ e, i })).sort((a, b) => a.e.page - b.e.page || a.i - b.i).map(x => x.e.id);
 
 /** تمرین پیشنهادی بعدی: اولین تمرین مسیر که هنوز یاد گرفته نشده و پیش‌نیازهایش انجام شده */
 export function nextRecommended(p: MathProgress): string {
@@ -56,6 +49,4 @@ export function islandStats(p: MathProgress, island: IslandId) {
 }
 export const islandOfExercise = (id: string): IslandId => HOUSES[EXERCISE_BY_ID[id].house].island;
 
-if (LEARNING_PATH.length !== EXERCISES.length || EXERCISES.some(e => !LEARNING_PATH.includes(e.id))) {
-  console.warn('[riazi] LEARNING_PATH با فهرست تمرین‌ها هم‌خوان نیست', EXERCISES.filter(e => !LEARNING_PATH.includes(e.id)).map(e => e.id));
-}
+

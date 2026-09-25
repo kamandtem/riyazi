@@ -26,7 +26,8 @@ export type ExerciseType =
   | 'compareGroups' | 'makeEqual' | 'compareSymbol'
   | 'tensOnes'
   | 'pattern' | 'chart' | 'latinSquare' | 'shapeCorners' | 'compareLength' | 'measureUnits'
-  | 'addCombine' | 'takeAway' | 'expression' | 'lineJump' | 'hiddenPart' | 'makeTen' | 'repMatch' | 'story';
+  | 'addCombine' | 'takeAway' | 'expression' | 'lineJump' | 'hiddenPart' | 'makeTen' | 'repMatch' | 'story'
+  | 'colorCount' | 'fingerMatch' | 'groupMatch' | 'patternStrip';
 
 /** نمایش‌های مختلفِ یک مقدار (از عینی به نمادین) */
 export type Rep = 'objects' | 'dots' | 'tally' | 'tenframe' | 'numeral' | 'line';
@@ -62,6 +63,10 @@ export interface ExerciseDef {
   /** دورهای ثابت دست‌ساز؛ اگر باشد به جای generator استفاده می‌شود */
   fixed?: Round[];
   emoji: string;
+  /** شمارهٔ صفحهٔ کتاب درسی (همان عدد پایین صفحهٔ کتاب) — ترتیب مسیر یادگیری از روی همین ساخته می‌شود */
+  page: number;
+  /** false یعنی پیش از تم ۷ کتاب: کودک هنوز نماد عدد را نمی‌شناسد؛ هیچ عددی نوشته نمی‌شود و جواب گفتاری/انگشتی است */
+  numerals: boolean;
 }
 
 export interface IslandDef { id: IslandId; title: string; subtitle: string; text: string; houses: HouseId[] }

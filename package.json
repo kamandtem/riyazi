@@ -1,7 +1,7 @@
 {
   "name": "riazi-village-grade1",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -29,7 +29,8 @@
     "@capacitor/android": "^7.4.0",
     "@capacitor/app": "^7.0.1",
     "@capacitor/status-bar": "^7.0.1",
-    "@capacitor-community/text-to-speech": "^6.1.0"
+    "@capacitor-community/text-to-speech": "^6.1.0",
+    "@capacitor/screen-orientation": "^7.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -7,7 +7,7 @@ import { HouseDef, HouseId, IslandDef } from './types';
  */
 export const ISLANDS: IslandDef[] = [
   { id: 'numbers', title: 'جزیرهٔ عددها', subtitle: 'بشمار، بساز، مقایسه کن', houses: ['counting', 'building', 'neighbors', 'compare', 'tens'],
-    text: 'شمردن اشیا، ساختن یک عدد با شیء و چوب‌خط و خانه‌های ده‌تایی، عدد قبل و بعد، و مقایسهٔ دو دسته.' },
+    text: 'بشمار و بگو، با انگشت نشان بده، چوب‌خط بکش، یکی بیشتر و یکی کمتر، و دسته‌ها را مقایسه کن. تمرین‌های اول بدون نوشتن عدد است، مثل کتاب تا تم ۷.' },
   { id: 'order', title: 'جزیرهٔ نظم و الگو', subtitle: 'الگو، جدول و شکل', houses: ['patterns', 'chart', 'logic', 'shapes', 'measure'],
     text: 'پیدا کردن نظم در الگوها، کار با جدول عددها، جدول‌های شگفت‌انگیز، شکل‌ها و اندازه‌گیری.' },
   { id: 'operations', title: 'جزیرهٔ جمع و تفریق', subtitle: 'با شکل، چوب‌خط و محور', houses: ['addition', 'subtraction', 'numberline', 'bonds', 'problems'],
@@ -15,8 +15,8 @@ export const ISLANDS: IslandDef[] = [
 ];
 
 export const HOUSES: Record<HouseId, HouseDef> = {
-  counting:    { id: 'counting', island: 'numbers', title: 'خانهٔ شمارش', subtitle: 'لمس کن و بشمار', emoji: '👆', tone: 'coral', text: 'یکی‌یکی لمس کن و بشمار؛ عدد آخر یعنی همه چند تا.' },
-  building:    { id: 'building', island: 'numbers', title: 'خانهٔ ساختن عدد', subtitle: 'شیء، چوب‌خط، ده‌تایی', emoji: '🧺', tone: 'green', text: 'یک عدد را با شیء، چوب‌خط و خانه‌های ده‌تایی بساز و بشناس.' },
+  counting:    { id: 'counting', island: 'numbers', title: 'خانهٔ شمارش', subtitle: 'بشمار و بگو', emoji: '👆', tone: 'coral', text: 'یکی‌یکی لمس کن و بشمار، بلند بگو و به همان تعداد رنگ کن. اول فقط یک، دو، سه.' },
+  building:    { id: 'building', island: 'numbers', title: 'خانهٔ انگشت و چوب‌خط', subtitle: 'با دست نشان بده', emoji: '✋', tone: 'green', text: 'تعداد را با انگشت‌های دست نشان بده، با دو دست بشمار و چوب‌خط بکش؛ پنجمی کج روی چهار تا.' },
   neighbors:   { id: 'neighbors', island: 'numbers', title: 'خانهٔ قبل و بعد', subtitle: 'ترتیب عددها', emoji: '🚂', tone: 'blue', text: 'یکی بیشتر، یکی کمتر، عدد قبل و بعد و مرتب کردن عددها.' },
   compare:     { id: 'compare', island: 'numbers', title: 'خانهٔ مقایسه', subtitle: 'بیشتر، کمتر، مساوی', emoji: '⚖️', tone: 'violet', text: 'کدام دسته بیشتر است؟ دو دسته را مساوی کن و علامت درست را بگذار.' },
   tens:        { id: 'tens', island: 'numbers', title: 'خانهٔ ده‌تایی‌ها', subtitle: 'ده‌تایی و یکی', emoji: '🥢', tone: 'sun', text: 'ده‌تا را با هم ببند و عددهای بزرگ‌تر از ده را بشناس.' },
