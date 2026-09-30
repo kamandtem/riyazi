@@ -95,7 +95,7 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
         <div className="mx-main">
           <header className="mx-main-top">
             <button type="button" className="mx-exercise-back" onClick={back} aria-label="برگشت"><ArrowRight /></button>
-            <h1 className="mx-exercise-title"><ExerciseIcon id={def.id} size={32} /><span>{def.title}</span></h1>
+            <h1 className="mx-exercise-title"><span className="mx-title-bullet" aria-hidden="true">✦</span><ExerciseIcon id={def.id} size={32} /><span>{def.title}</span></h1>
             <div className="mx-progress" aria-label={`دور ${toFa(i + 1)} از ${toFa(total)}`}>
               {Array.from({ length: total }, (_, k) => <i key={k} className={k < results.length ? (results[k] ? 'star' : 'done') : k === i ? 'now' : ''}>{k < results.length && results[k] ? '★' : ''}</i>)}
             </div>

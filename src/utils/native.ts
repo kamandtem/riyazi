@@ -30,12 +30,16 @@ export async function enterExerciseFullscreen() {
     try {
       const { StatusBar } = await import('@capacitor/status-bar');
       await StatusBar.hide();
+      const { NavigationBar } = await import('@capawesome/capacitor-android-navigation-bar');
+      await NavigationBar.setVisibility({ visibility: 'hidden' });
+      await NavigationBar.setBehavior({ behavior: 'show-transient-by-swipe' });
     } catch { /* ignore */ }
   }
   try {
     const el = document.documentElement as any;
     if (!document.fullscreenElement && el.requestFullscreen) await el.requestFullscreen();
   } catch { /* مرورگر ممکن است تمام‌صفحه را اجازه ندهد */ }
+  try { await (screen.orientation as any)?.lock?.('landscape'); } catch { /* قفل صفحه در بعضی WebViewها مجاز نیست */ }
   document.documentElement.classList.add('exercise-fullscreen');
 }
 
@@ -45,11 +49,14 @@ export async function exitExerciseFullscreen() {
     try {
       const { StatusBar } = await import('@capacitor/status-bar');
       await StatusBar.show();
+      const { NavigationBar } = await import('@capawesome/capacitor-android-navigation-bar');
+      await NavigationBar.setVisibility({ visibility: 'visible' });
     } catch { /* ignore */ }
   }
   try {
     if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
   } catch { /* ignore */ }
+  try { await (screen.orientation as any)?.unlock?.(); } catch { /* ignore */ }
   document.documentElement.classList.remove('exercise-fullscreen');
 }
 
