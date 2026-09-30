@@ -470,27 +470,31 @@ button.mx-pair-row{cursor:pointer}
 /* تمرین افقی، تمام‌صفحه و بدون هدر کناری */
 .ls-shell .mx-screen.ls{direction:rtl}
 .ls .mx-main{padding:clamp(8px,2.2vh,18px) clamp(14px,3vw,34px) 8px;gap:clamp(5px,1.2vh,10px)}
-.ls .mx-main-top{direction:ltr;min-height:clamp(36px,7vh,58px);align-items:flex-start}
-.ls .mx-main-top .mx-progress{order:1;justify-content:flex-start;gap:clamp(3px,.55vw,6px);margin:0;padding-top:2px;max-width:48vw;overflow:hidden}
+.ls .mx-main-top{direction:ltr;display:grid;grid-template-columns:auto auto minmax(32px,1fr) minmax(220px,1fr);grid-template-areas:"q back title prog";min-height:clamp(40px,8vh,62px);align-items:center;gap:8px}
+.ls .mx-exercise-back{grid-area:back;display:grid;place-items:center;width:clamp(36px,6vh,48px);height:clamp(36px,6vh,48px);border:0;border-radius:14px;background:oklch(96% .02 250);color:var(--ink);box-shadow:0 3px 0 oklch(82% .03 250)}
+.ls .mx-exercise-back svg{width:clamp(20px,3.5vh,28px);height:clamp(20px,3.5vh,28px)}
+.ls .mx-exercise-title{grid-area:title;margin:0;direction:rtl;font-size:clamp(1rem,3.2vh,1.35rem);font-weight:1000;color:var(--ink);white-space:nowrap}
+.ls .mx-main-top .mx-progress{grid-area:prog;justify-content:flex-end;gap:clamp(3px,.55vw,6px);margin:0;padding-top:2px;max-width:48vw;overflow:hidden}
 .ls .mx-main-top .mx-progress i{width:clamp(18px,3.3vh,26px);height:clamp(18px,3.3vh,26px)}
-.ls .mx-main-top .mx-question{order:2;direction:rtl;text-align:right;margin:0;max-width:min(62vw,760px);font-size:clamp(.84rem,2.8vh,1.25rem);line-height:1.55}
-.mx-question-house{display:block;margin-bottom:2px;color:oklch(54% .09 42);font-size:.68em;font-weight:800}
-.ls .mx-round{padding-inline:clamp(4px,1vw,16px)}
-.ls .mx-exercise-footer{display:flex;align-items:center;justify-content:space-between;flex:none;min-height:52px;padding:2px 0 max(2px,var(--sab,0px));direction:ltr}
-.ls .mx-exercise-footer .kid-round-btn{width:clamp(40px,7vh,54px);height:clamp(40px,7vh,54px)}
-.ls .mx-exercise-footer .kid-round-btn svg{width:clamp(20px,3.8vh,30px);height:clamp(20px,3.8vh,30px)}
-.ls .mx-exercise-footer .home{order:0}
-.ls .mx-exercise-footer .kid-round-btn:not(.home){order:1}
+.ls .mx-main-top .mx-question{grid-area:q;direction:rtl;text-align:left;margin:0;max-width:min(42vw,540px);font-size:clamp(.84rem,2.8vh,1.25rem);line-height:1.55}
+.ls .mx-round{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-content:center;align-items:center;justify-items:center;column-gap:clamp(12px,3vw,42px);padding-inline:clamp(4px,1vw,16px)}
+.ls .mx-round>*{grid-column:2;max-width:100%}
+.ls .mx-round>.mx-stage,.ls .mx-round>.mx-wide,.ls .mx-round>.mx-full{grid-column:2;grid-row:auto;width:100%}
+.ls .mx-round.lay-h{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);grid-auto-flow:row;align-content:center;align-items:center}
+.ls .mx-round.lay-h>*{grid-column:2}
+.ls .mx-round.lay-h>.mx-stage,.ls .mx-round.lay-h>.mx-wide{grid-column:2;grid-row:auto;align-self:center}
+.ls .mx-round.lay-h>.mx-stage~.mx-stage{grid-column:2;grid-row:auto}
+.ls .mx-exercise-footer{position:fixed;right:clamp(12px,3vw,34px);bottom:clamp(8px,2vh,18px);z-index:20;display:flex;align-items:center;justify-content:center;min-height:0;direction:ltr}
+.ls .mx-exercise-footer .art-ok{width:clamp(72px,12vh,110px)!important;margin:0!important}
 .ls .mx-ok{margin-inline:auto}
 
 /* فهرست خانه‌ها: خلوت، قابل اسکن و کم‌حجم */
 .mx-body{max-width:720px;padding-top:clamp(8px,2vw,24px)}
 .mx-house-text{max-width:52ch;margin:0 auto 8px;text-align:center;color:oklch(48% .04 42);font-size:.9rem;line-height:1.7}
 .mx-ex-list{gap:8px}
-.mx-ex-card{display:grid;grid-template-columns:30px 42px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:68px;padding:8px 12px;border:1px solid oklch(88% .04 75);border-radius:18px;background:oklch(99% .006 90);color:var(--brown);box-shadow:0 3px 0 oklch(82% .07 75);text-align:right;transition:transform .15s,box-shadow .15s}
+.mx-ex-card{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;min-height:58px;padding:8px 12px;border:1px solid oklch(88% .04 75);border-radius:18px;background:oklch(99% .006 90);color:var(--brown);box-shadow:0 3px 0 oklch(82% .07 75);text-align:right;transition:transform .15s,box-shadow .15s}
 .mx-ex-card:active{transform:translateY(2px);box-shadow:0 1px 0 oklch(82% .07 75)}
 .mx-ex-num{display:grid;place-items:center;width:28px;height:28px;border-radius:10px;background:oklch(95% .05 90);color:oklch(55% .08 42);font-size:.78rem;font-weight:900}
-.mx-ex-emoji{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:oklch(96% .06 145);font-size:1.45rem}
 .mx-ex-body{display:grid;gap:1px;min-width:0}
 .mx-ex-body b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.95rem}
 .mx-ex-body small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:oklch(54% .04 42);font-size:.68rem;font-weight:700}
@@ -506,3 +510,19 @@ button.mx-pair-row{cursor:pointer}
   .ls .mx-main-top .mx-question{font-size:clamp(.8rem,2.7vh,1.08rem)}
   .ls .mx-round{gap:6px}
 }
+
+/* ---------- آیکن‌های اختصاصی کودکانه (به جای ایموجی) ---------- */
+.kid-icon{display:block;flex:none;overflow:visible}
+.kid-header-emoji.has-icon{width:40px;height:40px;background:none;padding:0}
+.kid-header-emoji.has-icon .kid-icon{filter:drop-shadow(0 2px 0 oklch(70% .09 70/.45))}
+.mx-ex-card{grid-template-columns:auto minmax(0,1fr) auto}
+.mx-ex-icon{position:relative;display:grid;place-items:center;width:46px;height:46px}
+.mx-ex-icon .kid-icon{filter:drop-shadow(0 2px 0 oklch(80% .07 75))}
+.mx-ex-icon i{position:absolute;bottom:-4px;left:-4px;display:grid;place-items:center;min-width:19px;height:19px;padding:0 4px;border:2px solid oklch(99% .01 90);border-radius:999px;background:oklch(72% .15 55);color:oklch(99% .01 90);font-style:normal;font-size:.62rem;font-weight:900;line-height:1}
+.mx-ex-card:active .mx-ex-icon .kid-icon{transform:scale(.94)}
+.mx-exercise-title{display:inline-flex;align-items:center;gap:8px}
+.mx-exercise-title .kid-icon{width:30px;height:30px}
+.mx-chip-emoji{display:grid;place-items:center}
+.mx-mp-title{display:inline-flex;align-items:center;gap:6px}
+.mx-mp-ex{gap:2px}
+.mx-mp-houses span .kid-icon{margin-bottom:1px}

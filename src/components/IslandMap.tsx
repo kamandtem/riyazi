@@ -9,6 +9,7 @@ import { useBackHandler } from '../utils/backNav';
 import { MapScreen } from './shared/MapScreen';
 import { MapSpot } from './shared/MapSpot';
 import { CloseArt, OkArt } from './shared/ArtButtons';
+import { ExerciseIcon } from './shared/KidIcon';
 
 /* همان جای سه جزیره روی نقشهٔ پروژهٔ الفبا */
 const PLACES = [
@@ -29,7 +30,7 @@ export const IslandMap: React.FC<{ onIsland: (id: IslandId) => void; onExercise:
       <div className="map-title-ribbon"><small>ماجراجویی من</small><strong>دهکدهٔ ریاضی</strong></div>
       <button className="map-svg-button" onClick={() => { sound.playPop(); setHelp(true); }} aria-label="راهنمای نقشه"><img src="/assets/map-help.svg" alt="راهنما" /></button>
     </header>
-    <button className="lesson-chip" onClick={() => { sound.playPop(); onExercise(rec.id); }}><span>🎯 پیشنهاد امروز</span><b className="mx-chip-emoji">{rec.emoji}</b><small>{rec.title}</small></button>
+    <button className="lesson-chip" onClick={() => { sound.playPop(); onExercise(rec.id); }}><span>پیشنهاد امروز</span><b className="mx-chip-emoji"><ExerciseIcon id={rec.id} size={34} /></b><small>{rec.title}</small></button>
     {help && <div className="map-help-backdrop" role="presentation" onClick={() => setHelp(false)}>
       <section className="map-help-panel" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
         <CloseArt className="map-help-close" onClick={() => setHelp(false)} />

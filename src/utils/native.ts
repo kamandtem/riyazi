@@ -23,4 +23,34 @@ export async function setStatusBarColor(color: string, darkIcons = true) {
   } catch { /* ignore */ }
 }
 
+/** صفحهٔ تمرین بدون نوار وضعیت و نوار ناوبری اندروید */
+export async function enterExerciseFullscreen() {
+  const cap = (window as any).Capacitor;
+  if (cap?.isNativePlatform?.()) {
+    try {
+      const { StatusBar } = await import('@capacitor/status-bar');
+      await StatusBar.hide();
+    } catch { /* ignore */ }
+  }
+  try {
+    const el = document.documentElement as any;
+    if (!document.fullscreenElement && el.requestFullscreen) await el.requestFullscreen();
+  } catch { /* مرورگر ممکن است تمام‌صفحه را اجازه ندهد */ }
+  document.documentElement.classList.add('exercise-fullscreen');
+}
+
+export async function exitExerciseFullscreen() {
+  const cap = (window as any).Capacitor;
+  if (cap?.isNativePlatform?.()) {
+    try {
+      const { StatusBar } = await import('@capacitor/status-bar');
+      await StatusBar.show();
+    } catch { /* ignore */ }
+  }
+  try {
+    if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+  } catch { /* ignore */ }
+  document.documentElement.classList.remove('exercise-fullscreen');
+}
+
 export const vibrate = (ms = 60) => { try { navigator.vibrate?.(ms); } catch { /* ignore */ } };

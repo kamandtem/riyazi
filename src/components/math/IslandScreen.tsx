@@ -12,6 +12,7 @@ import { MapSpot, SpotPlace } from '../shared/MapSpot';
 import { CloseArt } from '../shared/ArtButtons';
 import { HouseScreen } from './HouseScreen';
 import { ExerciseRunner } from './ExerciseRunner';
+import { ExerciseIcon } from '../shared/KidIcon';
 
 const HR = 258 / 246;
 /** جای ۵ خانه روی نقشهٔ دهکده (همان نقاشی‌ها و جای‌های پروژهٔ الفبا) */
@@ -51,7 +52,7 @@ export const IslandScreen: React.FC<{ island: IslandId; route: IslandRoute; go: 
       <div className={`map-title-ribbon ${tone}`}><small>{def.subtitle}</small><strong>{def.title}</strong></div>
       <button className="map-svg-button" onClick={() => { sound.playPop(); setHelp(true); }} aria-label="راهنما"><img src="/assets/letters-help.svg" alt="راهنما" /></button>
     </header>
-    {recHere && <button className="lesson-chip" onClick={() => { sound.playPop(); go({ house: recHere.house, ex: recHere.id }); }}><span>🎯 پیشنهاد امروز</span><b className="mx-chip-emoji">{recHere.emoji}</b><small>{recHere.title}</small></button>}
+    {recHere && <button className="lesson-chip" onClick={() => { sound.playPop(); go({ house: recHere.house, ex: recHere.id }); }}><span>پیشنهاد امروز</span><b className="mx-chip-emoji"><ExerciseIcon id={recHere.id} size={34} /></b><small>{recHere.title}</small></button>}
     {help && <div className="letters-help-backdrop" onClick={() => setHelp(false)}><section className="letters-help-panel" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
       <CloseArt className="letters-help-close" onClick={() => setHelp(false)} />
       <div className="letters-help-mark">؟</div><h2>{def.title}</h2>

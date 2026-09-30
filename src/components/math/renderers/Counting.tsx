@@ -157,7 +157,7 @@ export const OneMoreLess: React.FC<RProps> = ({ round, def, answer, solved }) =>
   const r = n + op;
   return <>
     <Stage>
-      {def.numerals ? <div className="mx-tag">اینجا {toFa(n)} تا بود</div> : <div className="mx-tag">{op > 0 ? 'خوب نگاه کن، کسی می‌آید!' : 'خوب نگاه کن، کسی می‌رود!'}</div>}
+      {def.numerals ? <div className="mx-tag">اینجا {toFa(n)} تا بود</div> : <div className="mx-tag">'خوب نگاه کن، چه اتفاقی می‌افتد؟'</div>}
       <div className="mx-row-box">{Array.from({ length: total }, (_, i) => {
         const cls = op > 0 ? (i >= n ? (moved ? 'arrive' : 'hide') : '') : (moved && i >= n + op ? 'leave' : '');
         return <span key={i} className={`mx-obj still ${cls}`}><span>{emoji}</span></span>; })}</div>

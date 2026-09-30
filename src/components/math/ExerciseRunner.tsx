@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Home, RotateCcw, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, RotateCcw, Sparkles, Star } from 'lucide-react';
 import { ExerciseDef, Round } from '../../math/types';
 import { buildRound } from '../../math/generators';
 import { saveResult } from '../../math/progress';
@@ -7,12 +7,13 @@ import { HOUSES } from '../../math/curriculum';
 import { recordActivityCompleted } from '../../utils/progressStorage';
 import { sound } from '../../utils/audio';
 import { numWord, toFa } from '../../utils/fa';
-import { vibrate } from '../../utils/native';
+import { enterExerciseFullscreen, exitExerciseFullscreen, vibrate } from '../../utils/native';
 import { cheer, FeedbackState, FeedbackToast, praise } from '../shared/Feedback';
 import { OkArt } from '../shared/ArtButtons';
 import { RENDERERS } from './renderers';
 import { ActionSlot } from './Visuals';
 import { useLandscape } from '../../utils/orientation';
+import { ExerciseIcon } from '../shared/KidIcon';
 
 /** چیدمان افقی: نوع‌هایی که باید در یک ردیف کامل (پهنای کامل) نمایش داده شوند */
 const VERTICAL = new Set(['pattern', 'patternStrip', 'lineJump', 'sequenceGap', 'orderCards', 'compareGroups', 'makeEqual', 'compareLength', 'measureUnits', 'chart', 'story', 'groupMatch']);
@@ -47,7 +48,10 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
   const [finished, setFinished] = useState<null | number>(null);
   const [fb, setFb] = useState<FeedbackState>(null);
   const timer = useRef(0);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  useEffect(() => {
+    void enterExerciseFullscreen();
+    return () => { window.clearTimeout(timer.current); void exitExerciseFullscreen(); };
+  }, []);
 
   const speakQ = useCallback(() => sound.speakPersian(speakable(round.speak || round.question)), [round]);
   useEffect(() => { const t = window.setTimeout(speakQ, 350); return () => window.clearTimeout(t); }, [speakQ]);
@@ -90,12 +94,12 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
       <ActionSlot.Provider value={slot}>
         <div className="mx-main">
           <header className="mx-main-top">
+            <button type="button" className="mx-exercise-back" onClick={back} aria-label="برگشت"><ArrowRight /></button>
+            <h1 className="mx-exercise-title"><ExerciseIcon id={def.id} size={32} /><span>{def.title}</span></h1>
             <div className="mx-progress" aria-label={`دور ${toFa(i + 1)} از ${toFa(total)}`}>
               {Array.from({ length: total }, (_, k) => <i key={k} className={k < results.length ? (results[k] ? 'star' : 'done') : k === i ? 'now' : ''}>{k < results.length && results[k] ? '★' : ''}</i>)}
             </div>
-            {finished === null && def.type !== 'story'
-              ? <p className="mx-question"><span className="mx-question-house">{house.title} · {lv.short}</span>{round.question}</p>
-              : <span />}
+            {finished === null && def.type !== 'story' ? <p className="mx-question">{round.question}</p> : <span />}
           </header>
           {finished === null
             ? <div className={`mx-round ${VERTICAL.has(def.type) ? 'lay-v' : 'lay-h'} t-${def.type}`} key={`${session}-${i}`}><R round={round} def={def} answer={answer} mistakes={mistakes} solved={solved} /></div>
@@ -110,10 +114,7 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
                 <OkArt className="mx-ok" ready caption="برگشت به خانه" onClick={back} />
               </div>
             </section>}
-          <footer className="mx-exercise-footer" ref={setSlot}>
-            <button type="button" className="kid-round-btn home" onClick={() => { sound.playPop(); onHome?.(); }} aria-label="خانه"><Home strokeWidth={2.8} /></button>
-            <button type="button" className="kid-round-btn" onClick={back} aria-label="برگشت"><ArrowRight strokeWidth={3} /></button>
-          </footer>
+          <footer className="mx-exercise-footer" ref={setSlot} />
         </div>
       </ActionSlot.Provider>
       <FeedbackToast state={fb} onClose={() => setFb(null)} />

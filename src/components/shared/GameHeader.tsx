@@ -7,6 +7,8 @@ export const GameHeader: React.FC<{
   kicker?: string;
   title: string;
   emoji?: string;
+  /** آیکن اختصاصی (به جای ایموجی) */
+  icon?: React.ReactNode;
   tone?: 'sun' | 'mint' | 'sky' | 'berry';
   onBack: () => void;
   onHome?: () => void;
@@ -14,9 +16,9 @@ export const GameHeader: React.FC<{
   onTitleClick?: () => void;
   titleRef?: React.Ref<HTMLButtonElement>;
   children?: React.ReactNode;
-}> = ({ kicker, title, emoji, tone = 'sun', onBack, onHome, onTitleClick, titleRef, children }) => {
+}> = ({ kicker, title, emoji, icon, tone = 'sun', onBack, onHome, onTitleClick, titleRef, children }) => {
   const inner = <>
-        {emoji && <span className="kid-header-emoji" aria-hidden="true">{emoji}</span>}
+        {(icon || emoji) && <span className={`kid-header-emoji ${icon ? 'has-icon' : ''}`} aria-hidden="true">{icon || emoji}</span>}
         <div>
           {kicker && <small>{kicker}</small>}
           <strong>{title}</strong>
