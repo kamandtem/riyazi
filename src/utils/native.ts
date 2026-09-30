@@ -30,9 +30,6 @@ export async function enterExerciseFullscreen() {
     try {
       const { StatusBar } = await import('@capacitor/status-bar');
       await StatusBar.hide();
-      const { NavigationBar } = await import('@capawesome/capacitor-android-navigation-bar');
-      await NavigationBar.setVisibility({ visibility: 'hidden' });
-      await NavigationBar.setBehavior({ behavior: 'show-transient-by-swipe' });
     } catch { /* ignore */ }
   }
   try {
@@ -49,8 +46,6 @@ export async function exitExerciseFullscreen() {
     try {
       const { StatusBar } = await import('@capacitor/status-bar');
       await StatusBar.show();
-      const { NavigationBar } = await import('@capawesome/capacitor-android-navigation-bar');
-      await NavigationBar.setVisibility({ visibility: 'visible' });
     } catch { /* ignore */ }
   }
   try {
