@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, Home, Volume2 } from 'lucide-react';
+import { ArrowRight, Home, RotateCcw, Sparkles, Star } from 'lucide-react';
 import { ExerciseDef, Round } from '../../math/types';
 import { buildRound } from '../../math/generators';
 import { saveResult } from '../../math/progress';
@@ -13,7 +13,6 @@ import { OkArt } from '../shared/ArtButtons';
 import { RENDERERS } from './renderers';
 import { ActionSlot } from './Visuals';
 import { useLandscape } from '../../utils/orientation';
-import { bookRef } from '../../math/exercises';
 
 /** چیدمان افقی: نوع‌هایی که باید در یک ردیف کامل (پهنای کامل) نمایش داده شوند */
 const VERTICAL = new Set(['pattern', 'patternStrip', 'lineJump', 'sequenceGap', 'orderCards', 'compareGroups', 'makeEqual', 'compareLength', 'measureUnits', 'chart', 'story', 'groupMatch']);
@@ -88,33 +87,33 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
   const back = () => { sound.playPop(); onExit(); };
   return <div className={`ls-shell ${rotated ? 'ls-rotated' : ''}`} style={style}>
     <main className="recognition-game-screen mx-screen ls" dir="rtl">
-      <aside className="mx-side">
-        <button type="button" className="kid-round-btn" onClick={back} aria-label="برگشت"><ArrowRight strokeWidth={3} /></button>
-        <div className="mx-side-title"><span className="mx-side-emoji">{def.emoji}</span><b>{def.title}</b><small>{house.title} · {lv.short}</small>{def.page ? <small className="mx-bookref">📖 {bookRef(def)}</small> : null}</div>
-        <button type="button" className="kid-round-btn speak" onClick={() => { sound.playPop(); speakQ(); }} aria-label="دوباره بخوان"><Volume2 strokeWidth={2.8} /></button>
-        <div className="mx-side-slot" ref={setSlot} />
-        {onHome && <button type="button" className="kid-round-btn home" onClick={() => { sound.playPop(); onHome(); }} aria-label="خانه"><Home strokeWidth={2.8} /></button>}
-      </aside>
       <ActionSlot.Provider value={slot}>
         <div className="mx-main">
           <header className="mx-main-top">
-            {finished === null && def.type !== 'story' ? <p className="mx-question">{round.question}</p> : <span />}
             <div className="mx-progress" aria-label={`دور ${toFa(i + 1)} از ${toFa(total)}`}>
               {Array.from({ length: total }, (_, k) => <i key={k} className={k < results.length ? (results[k] ? 'star' : 'done') : k === i ? 'now' : ''}>{k < results.length && results[k] ? '★' : ''}</i>)}
             </div>
+            {finished === null && def.type !== 'story'
+              ? <p className="mx-question"><span className="mx-question-house">{house.title} · {lv.short}</span>{round.question}</p>
+              : <span />}
           </header>
           {finished === null
             ? <div className={`mx-round ${VERTICAL.has(def.type) ? 'lay-v' : 'lay-h'} t-${def.type}`} key={`${session}-${i}`}><R round={round} def={def} answer={answer} mistakes={mistakes} solved={solved} /></div>
             : <section className="mx-finish">
-              <div className="mx-finish-stars">{[1, 2, 3].map(s => <span key={s} className={s <= finished ? 'on' : ''} style={{ animationDelay: `${s * .18}s` }}>★</span>)}</div>
+              <div className="mx-finish-badge" aria-hidden="true"><Sparkles /><span>آفرین</span></div>
+              <div className="mx-finish-stars">{[1, 2, 3].map(s => <Star key={s} className={s <= finished ? 'on' : ''} style={{ animationDelay: `${s * .18}s` }} />)}</div>
               <h2>{finished === 3 ? 'عالی بود!' : finished === 2 ? 'آفرین! خیلی خوب بود' : 'آفرین! تمرین تمام شد'}</h2>
               <p>{toFa(firstTry)} از {toFa(total)} را بار اول درست گفتی.</p>
               <div className="mx-finish-actions">
-                <button type="button" className="mx-tool undo" onClick={restart}>🔁 دوباره</button>
-                {onNext && <button type="button" className="mx-tool add" onClick={() => { sound.playPop(); onNext(); }}>▶️ {nextTitle || 'بعدی'}</button>}
+                <button type="button" className="mx-tool undo" onClick={restart}><RotateCcw /> دوباره</button>
+                {onNext && <button type="button" className="mx-tool add" onClick={() => { sound.playPop(); onNext(); }}><ArrowRight /> {nextTitle || 'بعدی'}</button>}
                 <OkArt className="mx-ok" ready caption="برگشت به خانه" onClick={back} />
               </div>
             </section>}
+          <footer className="mx-exercise-footer" ref={setSlot}>
+            <button type="button" className="kid-round-btn home" onClick={() => { sound.playPop(); onHome?.(); }} aria-label="خانه"><Home strokeWidth={2.8} /></button>
+            <button type="button" className="kid-round-btn" onClick={back} aria-label="برگشت"><ArrowRight strokeWidth={3} /></button>
+          </footer>
         </div>
       </ActionSlot.Provider>
       <FeedbackToast state={fb} onClose={() => setFb(null)} />

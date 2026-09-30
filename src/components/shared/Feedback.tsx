@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { WordPic } from './WordPic';
+import { Check, Lightbulb, Sparkles } from 'lucide-react';
 
 export type FeedbackState = { tone: 'good' | 'try' | 'info'; text: string; emoji?: string } | null;
 
@@ -7,6 +7,12 @@ const PRAISE = ['آفرین!', 'عالی بود!', 'صد آفرین!', 'باری
 const CHEER = ['اشکالی ندارد، دوباره امتحان کن.', 'نزدیک بودی! یک بار دیگر.', 'تو می‌توانی، دوباره تلاش کن.', 'کمی بیشتر دقت کن، موفق می‌شوی.'];
 export const praise = () => PRAISE[Math.floor(Math.random() * PRAISE.length)];
 export const cheer = () => CHEER[Math.floor(Math.random() * CHEER.length)];
+
+const FeedbackIcon: React.FC<{ tone: 'good' | 'try' | 'info' }> = ({ tone }) => {
+  if (tone === 'good') return <span className="kid-toast-icon good-icon" aria-hidden="true"><Sparkles /><Check className="good-icon-check" /></span>;
+  if (tone === 'try') return <span className="kid-toast-icon try-icon" aria-hidden="true"><span className="try-face">◡</span></span>;
+  return <span className="kid-toast-icon info-icon" aria-hidden="true"><Lightbulb /></span>;
+};
 
 const DEFAULT_MS = { good: 1500, try: 1900, info: 1900 } as const;
 
@@ -23,11 +29,10 @@ export const FeedbackToast: React.FC<{ state: FeedbackState; onClose: () => void
     return () => { window.clearTimeout(a); window.clearTimeout(b); };
   }, [state, ms]); // eslint-disable-line
   if (!state) return null;
-  const emoji = state.emoji || (state.tone === 'good' ? '🌟' : state.tone === 'try' ? '🙈' : '💡');
   return <div className="kid-toast-layer" aria-live="polite">
     <div className={`kid-toast ${state.tone} ${leaving ? 'leaving' : ''}`} role="status" onClick={onClose}>
       {state.tone === 'good' && <span className="kid-toast-confetti" aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>}
-      <span className="kid-toast-emoji"><WordPic value={emoji} /></span>
+      <FeedbackIcon tone={state.tone} />
       <p>{state.text}</p>
     </div>
   </div>;

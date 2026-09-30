@@ -48,8 +48,8 @@ export const Pattern: React.FC<RProps> = ({ round, answer, solved }) => {
 };
 
 /* ---------- جدول عددها ----------
- * جهت چیدمان جدول: راست‌به‌چپ مثل خواندن فارسی (عدد ۱ بالا-راست). اگر لازم شد فقط همین ثابت را عوض کنید. */
-export const CHART_DIR: 'rtl' | 'ltr' = 'rtl';
+ * جدول عددی برای کودک فارسی‌زبان از چپ به راست شمرده می‌شود؛ عدد ۱ بالا-چپ است. */
+export const CHART_DIR: 'rtl' | 'ltr' = 'ltr';
 
 export const Chart: React.FC<RProps> = ({ round, answer, solved, mistakes }) => {
   const d = round.data;

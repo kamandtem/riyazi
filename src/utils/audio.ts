@@ -25,7 +25,8 @@ const readSettings = (): AudioSettings => {
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
-  private isMuted: boolean = false;
+  // این نسخه عمداً کاملا بی‌صداست: هیچ افکت، موسیقی یا گفتاری پخش نمی‌شود.
+  private isMuted: boolean = true;
   private sfxBus: GainNode | null = null;
   private settings: AudioSettings = typeof window !== 'undefined' ? readSettings() : { sfx: 0.8, music: 0.6 };
   private musicEl: HTMLAudioElement | null = null;

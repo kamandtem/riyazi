@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Check, Mic2, RotateCcw } from 'lucide-react';
 import { numWord, toFa } from '../../utils/fa';
 import { sound } from '../../utils/audio';
 import { ExerciseDef, Round } from '../../math/types';
@@ -111,15 +112,14 @@ export const OralAnswer: React.FC<{ n: number; solved: boolean; answer: RProps['
   const [phase, setPhase] = useState<'ask' | 'check'>('ask');
   if (phase === 'ask') return <div className="mx-oral">
     <button type="button" className="mx-oral-say" disabled={solved} onClick={() => { sound.playPop(); setPhase('check'); window.setTimeout(() => say(numWord(n)), 120); }}>
-      <span className="mx-oral-mouth" aria-hidden="true">🗣️</span><b>{prompt}</b><small>گفتی؟ این‌جا بزن</small>
+      <span className="mx-oral-mouth" aria-hidden="true"><Mic2 /></span><b>{prompt}</b><small>گفتی؟ این‌جا بزن</small>
     </button>
-    <p className="mx-oral-parent">👪 با پدر یا مادرت بگو</p>
   </div>;
   return <div className="mx-oral check">
     <button type="button" className="mx-oral-show" onClick={() => say(numWord(n))} aria-label="دوباره بگو"><Hands n={n} size={64} /><span className="mx-oral-dots" dir="ltr">{Array.from({ length: n }, (_, i) => <i key={i} />)}</span></button>
     <div className="mx-oral-btns">
-      <button type="button" className="mx-oral-yes" disabled={solved} onClick={() => answer(true)}>✅ همین را گفتم</button>
-      <button type="button" className="mx-oral-no" disabled={solved} onClick={() => { setPhase('ask'); answer(false, retryHint || 'اشکالی ندارد! یکی‌یکی دوباره بشمار.'); }}>🔁 دوباره</button>
+      <button type="button" className="mx-oral-yes" disabled={solved} onClick={() => answer(true)}><Check /> همین را گفتم</button>
+      <button type="button" className="mx-oral-no" disabled={solved} onClick={() => { setPhase('ask'); answer(false, retryHint || 'اشکالی ندارد! یکی‌یکی دوباره بشمار.'); }}><RotateCcw /> دوباره</button>
     </div>
   </div>;
 };

@@ -223,7 +223,8 @@ export const GENERATORS: Record<string, Gen> = {
     if (mode === 'find') { const t = rand(1, size); return { question: `عدد ${fa(t)} را در جدول پیدا کن.`, speak: `عدد ${numWord(t)} را پیدا کن`, answer: t, data: { size, mode, target: t } }; }
     if (mode === 'fill') {
       const hidden = shuffle(range(2, size - 1)).slice(0, 6).sort((a, b) => a - b);
-      const ask = shuffle(hidden).slice(0, 2);
+      // خانه‌های نزدیک به ۱ همیشه اول تمرین می‌شوند، نه به‌صورت تصادفی.
+      const ask = hidden.slice(0, 2);
       return { question: 'خانه‌های خالیِ چشمک‌زن چه عددی دارند؟', answer: ask, data: { size, mode, hidden, ask } };
     }
     if (mode === 'move') {
