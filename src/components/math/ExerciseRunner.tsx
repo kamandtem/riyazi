@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, RotateCcw, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, RotateCcw, Sparkles, Star, Volume2 } from 'lucide-react';
 import { ExerciseDef, Round } from '../../math/types';
 import { buildRound } from '../../math/generators';
 import { saveResult } from '../../math/progress';
@@ -16,7 +16,7 @@ import { useLandscape } from '../../utils/orientation';
 import { ExerciseIcon } from '../shared/KidIcon';
 
 /** چیدمان افقی: نوع‌هایی که باید در یک ردیف کامل (پهنای کامل) نمایش داده شوند */
-const VERTICAL = new Set(['pattern', 'patternStrip', 'lineJump', 'sequenceGap', 'orderCards', 'compareGroups', 'makeEqual', 'compareLength', 'measureUnits', 'chart', 'story', 'groupMatch']);
+const VERTICAL = new Set(['pattern', 'patternStrip', 'lineJump', 'sequenceGap', 'orderCards', 'compareGroups', 'makeEqual', 'compareLength', 'measureUnits', 'groupMatch']);
 
 export const LEVEL_LABEL: Record<number, { short: string; long: string; icon: string }> = {
   1: { short: 'سطح ۱', long: 'عینی و تصویری', icon: '🧸' },
@@ -92,29 +92,40 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
   return <div className={`ls-shell ${rotated ? 'ls-rotated' : ''}`} style={style}>
     <main className="recognition-game-screen mx-screen ls" dir="rtl">
       <ActionSlot.Provider value={slot}>
-        <div className="mx-main">
-          <header className="mx-main-top">
+        <div className={`mx-main ${finished === null ? '' : 'is-finished'}`}>
+          {/* نوار بالا: سه ستونِ جدا (برگشت | عنوان و دورها | سطح) تا هیچ‌چیز روی هم نیفتد */}
+          <header className="mx-topbar">
             <button type="button" className="mx-exercise-back" onClick={back} aria-label="برگشت"><ArrowRight /></button>
-            <h1 className="mx-exercise-title"><span className="mx-title-bullet" aria-hidden="true">✦</span><ExerciseIcon id={def.id} size={32} /><span>{def.title}</span></h1>
-            <div className="mx-progress" aria-label={`دور ${toFa(i + 1)} از ${toFa(total)}`}>
-              {Array.from({ length: total }, (_, k) => <i key={k} className={k < results.length ? (results[k] ? 'star' : 'done') : k === i ? 'now' : ''}>{k < results.length && results[k] ? '★' : ''}</i>)}
-            </div>
-            {finished === null && def.type !== 'story' ? <p className="mx-question">{round.question}</p> : <span />}
-          </header>
-          {finished === null
-            ? <div className={`mx-round ${VERTICAL.has(def.type) ? 'lay-v' : 'lay-h'} t-${def.type}`} key={`${session}-${i}`}><R round={round} def={def} answer={answer} mistakes={mistakes} solved={solved} /></div>
-            : <section className="mx-finish">
-              <div className="mx-finish-badge" aria-hidden="true"><Sparkles /><span>آفرین</span></div>
-              <div className="mx-finish-stars">{[1, 2, 3].map(s => <Star key={s} className={s <= finished ? 'on' : ''} style={{ animationDelay: `${s * .18}s` }} />)}</div>
-              <h2>{finished === 3 ? 'عالی بود!' : finished === 2 ? 'آفرین! خیلی خوب بود' : 'آفرین! تمرین تمام شد'}</h2>
-              <p>{toFa(firstTry)} از {toFa(total)} را بار اول درست گفتی.</p>
-              <div className="mx-finish-actions">
-                <button type="button" className="mx-tool undo" onClick={restart}><RotateCcw /> دوباره</button>
-                {onNext && <button type="button" className="mx-tool add" onClick={() => { sound.playPop(); onNext(); }}><ArrowRight /> {nextTitle || 'بعدی'}</button>}
-                <OkArt className="mx-ok" ready caption="برگشت به خانه" onClick={back} />
+            <div className="mx-topbar-center">
+              <h1 className="mx-exercise-title"><ExerciseIcon id={def.id} size={26} /><span>{def.title}</span></h1>
+              <div className="mx-progress" aria-label={`دور ${toFa(i + 1)} از ${toFa(total)}`}>
+                {Array.from({ length: total }, (_, k) => <i key={k} className={k < results.length ? (results[k] ? 'star' : 'done') : k === i ? 'now' : ''}>{k < results.length && results[k] ? '★' : ''}</i>)}
               </div>
-            </section>}
-          <footer className="mx-exercise-footer" ref={setSlot} />
+            </div>
+            <span className={`mx-level-chip lv-${def.level}`} title={lv?.long}>{lv?.short}</span>
+          </header>
+          {/* صورت سؤال: ردیف مستقل، هرگز زیر دکمه‌ها نمی‌رود */}
+          {finished === null && def.type !== 'story' && <div className="mx-qbar">
+            <button type="button" className="mx-q-listen" onClick={() => { sound.playPop(); speakQ(); }} aria-label="دوباره بخوان"><Volume2 /></button>
+            <p className="mx-question">{round.question}</p>
+          </div>}
+          {/* صحنهٔ بازی + ستون دکمهٔ «تمام شد» (سمت چپ) */}
+          <div className="mx-playarea">
+            {finished === null
+              ? <div className={`mx-round ${VERTICAL.has(def.type) ? 'lay-v' : 'lay-h'} t-${def.type}`} key={`${session}-${i}`}><R round={round} def={def} answer={answer} mistakes={mistakes} solved={solved} /></div>
+              : <section className="mx-finish">
+                <div className="mx-finish-badge" aria-hidden="true"><Sparkles /><span>آفرین</span></div>
+                <div className="mx-finish-stars">{[1, 2, 3].map(s => <Star key={s} className={s <= finished ? 'on' : ''} style={{ animationDelay: `${s * .18}s` }} />)}</div>
+                <h2>{finished === 3 ? 'عالی بود!' : finished === 2 ? 'آفرین! خیلی خوب بود' : 'آفرین! تمرین تمام شد'}</h2>
+                <p>{toFa(firstTry)} از {toFa(total)} را بار اول درست گفتی.</p>
+                <div className="mx-finish-actions">
+                  <button type="button" className="mx-tool undo" onClick={restart}><RotateCcw /> دوباره</button>
+                  {onNext && <button type="button" className="mx-tool add" onClick={() => { sound.playPop(); onNext(); }}><ArrowRight /> {nextTitle || 'بعدی'}</button>}
+                  <OkArt className="mx-ok" ready caption="برگشت به خانه" onClick={back} />
+                </div>
+              </section>}
+            <aside className="mx-exercise-footer" ref={setSlot} />
+          </div>
         </div>
       </ActionSlot.Provider>
       <FeedbackToast state={fb} onClose={() => setFb(null)} />

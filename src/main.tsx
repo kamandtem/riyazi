@@ -5,6 +5,7 @@ import './index.css';
 import './kid-ui.css';
 import './art-ui.css';
 import './math-ui.css';
+import './exercise-ui.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

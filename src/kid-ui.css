@@ -11,7 +11,8 @@ html,body{font-family:var(--ui-font);-webkit-tap-highlight-color:transparent;ove
 body{min-height:100dvh}
 html.exercise-fullscreen,html.exercise-fullscreen body,html.exercise-fullscreen #root{position:fixed;inset:0;width:100%;height:100%;min-width:100%;min-height:100%;overflow:hidden}
 html.exercise-fullscreen body{background:#f9f6ed;margin:0;padding:0}
-html.exercise-fullscreen .ls-shell{right:0;bottom:0;max-width:100vw;max-height:100dvh}
+/* فقط حالت افقیِ واقعی؛ در حالت چرخیده (CSS rotate) پهنای صحنه باید بلندی صفحه باشد، نه 100vw */
+html.exercise-fullscreen .ls-shell:not(.ls-rotated){right:0;bottom:0;max-width:100vw;max-height:100dvh}
 button,select,input{font-family:inherit}
 .tahriri{font-family:"Tahriri",var(--ui-font)}
 img{-webkit-user-drag:none}

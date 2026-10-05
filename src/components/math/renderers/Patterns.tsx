@@ -74,7 +74,7 @@ export const Chart: React.FC<RProps> = ({ round, answer, solved, mistakes }) => 
   const cells = Array.from({ length: size }, (_, i) => i + 1);
   return <>
     <Stage className="mx-chart-stage">
-      <div className="mx-chart" dir={CHART_DIR}>{cells.map(v => {
+      <div className="mx-chart" dir={CHART_DIR} style={{ '--rows': Math.ceil(size / 10) } as React.CSSProperties}>{cells.map(v => {
         const hidden = d.mode === 'fill' && d.hidden.includes(v) && !done.includes(v);
         const isAsk = v === curAsk;
         const cls = [

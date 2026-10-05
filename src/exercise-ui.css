@@ -1,0 +1,214 @@
+/* ==================================================================
+   دهکدهٔ ریاضی — چیدمان صفحهٔ بازی (نسخهٔ ۱.۲)
+   قانون اصلی: هیچ عنصری position:fixed/absolute روی صحنه نیست.
+   صفحه سه ردیف جدا دارد:  نوار بالا ← صورت سؤال ← صحنهٔ بازی (+ ستون «تمام شد»)
+   پس دکمه‌ها و صورت سؤال هرگز روی هم نمی‌افتند.
+   اندازه‌ها با container query (cqw/cqh) از اندازهٔ واقعی صحنه گرفته می‌شوند،
+   برای همین در حالت چرخیده (CSS rotate) هم درست می‌مانند.
+   ================================================================== */
+.ls-shell{
+  --ex-ink:oklch(33% .06 50);
+  --ex-soft:oklch(48% .06 55);
+  --ex-card:oklch(99.3% .008 90);
+  --ex-line:oklch(90% .035 80);
+  --ex-accent:oklch(72% .16 60);
+  --ex-accent-ink:oklch(52% .14 50);
+  --ex-r:clamp(16px,calc(var(--lh) * .055),26px);
+  --ex-gap:clamp(5px,calc(var(--lh) * .018),12px);
+  --ex-pad:clamp(10px,calc(var(--lw) * .018),26px);
+  --ex-tap:clamp(48px,calc(var(--lh) * .15),76px);
+  --ex-shadow:0 1px 0 oklch(100% 0 0/.9) inset,0 4px 0 oklch(84% .06 75/.55),0 12px 26px -14px oklch(40% .08 55/.35);
+  color:var(--ex-ink);
+}
+.ls-shell *{box-sizing:border-box}
+
+/* ---------- قاب اصلی ---------- */
+.ls .mx-main{
+  flex:1;min-width:0;min-height:0;height:100%;
+  display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:var(--ex-gap);
+  padding:calc(var(--sat,0px) + var(--ex-gap)) calc(var(--sar,0px) + var(--ex-pad)) calc(var(--sab,0px) + var(--ex-gap)) calc(var(--sal,0px) + var(--ex-pad));
+  overflow:hidden;overscroll-behavior:none;
+}
+.ls .mx-main.is-finished,.ls .mx-main:not(:has(>.mx-qbar)){grid-template-rows:auto minmax(0,1fr)}
+
+/* ---------- نوار بالا: [برگشت] [عنوان + دورها] [سطح] ---------- */
+.ls .mx-topbar{
+  /* ستون سطح «auto» است تا برچسب «سطح ۱» از ستون بیرون نزند و بریده نشود */
+  display:grid;grid-template-columns:var(--ex-tap-s) minmax(0,1fr) minmax(var(--ex-tap-s),auto);align-items:center;gap:var(--ex-gap);
+  --ex-tap-s:clamp(48px,calc(var(--lh) * .13),56px);
+  min-width:0;
+}
+.ls .mx-exercise-back{
+  position:static;display:grid;place-items:center;width:var(--ex-tap-s);height:var(--ex-tap-s);padding:0;
+  border:0;border-radius:calc(var(--ex-tap-s) * .34);background:var(--ex-card);color:var(--ex-ink);
+  box-shadow:var(--ex-shadow);cursor:pointer;touch-action:manipulation;transition:transform .14s cubic-bezier(.22,1,.36,1)
+}
+.ls .mx-exercise-back:active{transform:translateY(2px) scale(.95)}
+.ls .mx-exercise-back svg{width:52%;height:52%;stroke-width:2.8}
+.ls .mx-topbar-center{display:flex;align-items:center;justify-content:center;gap:clamp(8px,calc(var(--lw) * .018),22px);min-width:0;
+  padding:4px clamp(10px,calc(var(--lw) * .016),18px);min-height:var(--ex-tap-s);
+  border-radius:999px;background:oklch(99% .01 90/.72);box-shadow:0 0 0 1px oklch(92% .03 80) inset;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.ls .mx-exercise-title{position:static;margin:0;display:flex;align-items:center;gap:6px;min-width:0;font-size:clamp(.9rem,calc(var(--lh) * .046),1.25rem);font-weight:900;line-height:1.3;color:var(--ex-ink);white-space:nowrap}
+.ls .mx-exercise-title span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ls .mx-exercise-title .kid-icon{flex:none;width:clamp(22px,calc(var(--lh) * .075),30px);height:clamp(22px,calc(var(--lh) * .075),30px)}
+.ls .mx-progress{position:static;display:flex;flex:none;justify-content:center;gap:clamp(3px,calc(var(--lw) * .005),6px);margin:0;padding:0;direction:rtl}
+.ls .mx-progress i{width:clamp(14px,calc(var(--lh) * .05),22px);height:clamp(14px,calc(var(--lh) * .05),22px);border-width:2px;font-size:clamp(.55rem,calc(var(--lh) * .03),.75rem);transform:none;transition:transform .2s}
+.ls .mx-progress i.now{transform:scale(1.15)}
+.ls .mx-level-chip{display:grid;place-items:center;justify-self:end;height:calc(var(--ex-tap-s) * .62);padding:0 10px;border-radius:999px;font-size:clamp(.75rem,calc(var(--lh) * .034),.85rem);font-weight:900;white-space:nowrap;background:oklch(95% .05 60);color:oklch(42% .12 45)}
+.ls .mx-level-chip.lv-2{background:oklch(94% .045 235);color:oklch(46% .12 245)}
+.ls .mx-level-chip.lv-3{background:oklch(94% .045 300);color:oklch(46% .14 300)}
+
+/* ---------- صورت سؤال: ردیف خودش ---------- */
+.ls .mx-qbar{display:flex;align-items:center;gap:var(--ex-gap);min-width:0;margin-inline:auto;max-width:min(100%,920px);width:100%;
+  padding:clamp(4px,calc(var(--lh) * .014),8px) clamp(10px,calc(var(--lw) * .014),18px) clamp(4px,calc(var(--lh) * .014),8px) clamp(4px,calc(var(--lh) * .014),8px);
+  border-radius:999px;background:var(--ex-card);box-shadow:var(--ex-shadow);animation:mxIn .35s cubic-bezier(.22,1,.36,1)}
+.ls .mx-q-listen{flex:none;display:grid;place-items:center;width:clamp(30px,calc(var(--lh) * .09),42px);height:clamp(30px,calc(var(--lh) * .09),42px);padding:0;border:0;border-radius:50%;
+  background:linear-gradient(180deg,oklch(83% .14 75),oklch(73% .16 60));color:#fff;box-shadow:0 3px 0 oklch(58% .14 50);cursor:pointer;touch-action:manipulation}
+.ls .mx-q-listen:active{transform:translateY(2px);box-shadow:0 1px 0 oklch(58% .14 50)}
+.ls .mx-q-listen svg{width:55%;height:55%;stroke-width:2.6}
+.ls .mx-qbar .mx-question{flex:1;min-width:0;margin:0;padding:0;max-width:none;text-align:center;direction:rtl;
+  font-size:clamp(.88rem,calc(var(--lh) * .05),1.3rem);font-weight:900;line-height:1.5;color:var(--ex-ink);text-wrap:balance;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ---------- صحنهٔ بازی ---------- */
+.ls .mx-playarea{display:flex;align-items:stretch;gap:var(--ex-gap);min-height:0;min-width:0}
+.ls .mx-exercise-footer{position:static;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:clamp(78px,calc(var(--lh) * .28),118px);min-height:0;padding:0;direction:rtl}
+.ls .mx-exercise-footer:empty{display:none}
+.ls .mx-exercise-footer .art-ok{width:100% !important;max-width:118px;margin:0 !important}
+.ls .mx-main.is-finished .mx-exercise-footer{display:none}
+
+.ls .mx-round{
+  flex:1;min-width:0;min-height:0;height:100%;margin:0;padding:2px 4px 8px;
+  container-type:size;container-name:round;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--ex-gap);
+  overflow:auto;scrollbar-width:none
+}
+.ls .mx-round::-webkit-scrollbar{display:none}
+.ls .mx-round>*{flex:none;max-width:100%;margin-block:0}
+.ls .mx-round>.mx-stage,.ls .mx-round>.mx-wide,.ls .mx-round>.mx-full{width:min(100%,1000px)}
+
+/* صحنه */
+.ls .mx-stage{position:relative;flex:1 1 auto;min-height:0;max-height:none;overflow:hidden;padding:clamp(6px,1.6cqh,14px);justify-content:center;align-items:center;
+  border-radius:var(--ex-r);border:3px solid #fff}
+
+/* چیدمان کنار‌هم (پیش‌فرض): صحنه سمت راست، سؤالِ کوچک و دکمه‌ها سمت چپ */
+.ls .mx-round.lay-h:has(>.mx-stage){
+  display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr) auto auto auto auto minmax(0,1fr);
+  column-gap:clamp(10px,2.2cqw,26px);row-gap:var(--ex-gap);align-items:center;justify-items:center
+}
+.ls .mx-round.lay-h:has(>.mx-stage)>*{grid-column:2;max-width:100%;min-width:0}
+.ls .mx-round.lay-h>.mx-stage{grid-column:1;grid-row:1/-1;width:100%;height:100%;align-self:stretch}
+.ls .mx-round.lay-h>.mx-stage+*{grid-row:2}
+.ls .mx-round.lay-h>.mx-stage+*+*{grid-row:3}
+.ls .mx-round.lay-h>.mx-stage+*+*+*{grid-row:4}
+.ls .mx-round.lay-h>.mx-stage+*+*+*+*{grid-row:5}
+.ls .mx-round.lay-h>.mx-target:first-child{grid-row:2}
+.ls .mx-round.lay-h>.mx-target:first-child+.mx-stage+*{grid-row:3}
+.ls .mx-round.lay-h>.mx-target:first-child+.mx-stage+*+*{grid-row:4}
+/* اگر کنار صحنه فقط یک خط راهنما هست، راهنما زیر صحنه می‌رود و صحنه پهن می‌شود */
+.ls .mx-round.lay-h:has(>.mx-stage):not(:has(>.mx-choices,>.mx-tools,>.mx-cards,>.mx-oral,>.mx-palette,>.mx-ask,>.mx-story-text,>.mx-target)){display:flex}
+/* بدون صحنه (مثلاً هدف + کارت‌ها): ستونی */
+.ls .mx-round.lay-h:not(:has(>.mx-stage)){display:flex}
+
+/* چیدمان ستونی: صحنهٔ پهن بالا، دکمه‌ها زیرش */
+.ls .mx-round.lay-v>.mx-stage{flex:1 1 auto}
+
+/* متن‌های کمکی */
+.ls .mx-round .mx-ask,.ls .mx-round .mx-hint-line{margin:0;max-width:100%;text-align:center;line-height:1.5;text-wrap:balance}
+.ls .mx-round .mx-ask{font-size:clamp(.9rem,5.2cqh,1.25rem);font-weight:900;color:var(--ex-ink)}
+.ls .mx-round .mx-hint-line{font-size:clamp(.8rem,4.4cqh,1.05rem);font-weight:800;color:var(--ex-soft);padding:2px 12px;border-radius:999px;background:oklch(99% .01 90/.6)}
+.ls .mx-round .mx-note{margin:0}
+.ls .mx-round .mx-story-text{max-width:100%;font-size:clamp(.85rem,4.8cqh,1.15rem);line-height:1.8}
+
+/* گروه دکمه‌ها: همیشه در جریان صفحه، وسط‌چین، با فاصلهٔ کافی */
+.ls .mx-choices,.ls .mx-tools,.ls .mx-oral-btns,.ls .mx-palette,.ls .mx-cards{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;align-self:center;margin:0;padding:2px 0 6px;max-width:100%;
+  gap:clamp(8px,1.6cqw,14px)}
+.ls .mx-choice{min-width:var(--ex-tap);height:var(--ex-tap);padding:0 clamp(10px,1.6cqw,16px);font-size:clamp(1.3rem,9cqh,2.1rem);border-radius:clamp(16px,5cqh,24px);touch-action:manipulation}
+.ls .mx-choices.small .mx-choice{height:calc(var(--ex-tap) * .8);font-size:clamp(.95rem,5.4cqh,1.15rem)}
+.ls .mx-choices-art .mx-choice{height:auto;min-height:var(--ex-tap);padding:4px 8px}
+.ls .mx-tool{min-height:clamp(46px,13cqh,62px);padding:4px clamp(12px,2cqw,20px);font-size:clamp(.88rem,5cqh,1.08rem);touch-action:manipulation}
+.ls .mx-tool.big{min-height:clamp(52px,15cqh,68px);font-size:clamp(1rem,5.6cqh,1.25rem)}
+.ls .mx-oral-yes,.ls .mx-oral-no{min-height:clamp(42px,11.5cqh,54px)}
+.ls .mx-oral{gap:var(--ex-gap)}
+.ls .mx-card{min-width:clamp(84px,14cqw,120px);min-height:clamp(64px,22cqh,110px);padding:clamp(6px,2cqh,12px)}
+.ls .mx-cards.col{flex-direction:row;flex-wrap:wrap}
+.ls .mx-card.wide{width:auto;min-width:min(100%,clamp(140px,30cqw,260px));min-height:clamp(56px,18cqh,92px)}
+.ls .mx-pal{width:clamp(40px,12cqh,54px);height:clamp(40px,12cqh,54px)}
+
+/* ---------- اندازهٔ محتوای صحنه، متناسب با صحنه ---------- */
+.ls .mx-obj{width:clamp(40px,14cqh,72px);height:clamp(40px,14cqh,72px);font-size:clamp(26px,9.5cqh,50px)}
+.ls .mx-obj.small{width:clamp(34px,10cqh,46px);height:clamp(34px,10cqh,46px);font-size:clamp(22px,7cqh,32px)}
+.ls .mx-scatter-box{width:100%;height:100%;min-height:0;max-height:none}
+.ls .mx-scatter-box .mx-obj{width:clamp(40px,13cqh,64px);height:clamp(40px,13cqh,64px);font-size:clamp(26px,9cqh,44px)}
+.ls .mx-row-box{max-height:100%}
+.ls .mx-frame{width:min(100%,calc(36cqh * 2.5),300px)}
+.ls .mx-frame.small{width:min(100%,calc(22cqh * 2.5),180px)}
+.ls .mx-dice{width:clamp(56px,32cqh,130px);height:clamp(56px,32cqh,130px)}
+.ls .mx-dice.small{width:clamp(44px,20cqh,70px);height:clamp(44px,20cqh,70px)}
+.ls .mx-shape{width:clamp(90px,46cqh,170px);height:clamp(90px,46cqh,170px)}
+.ls .mx-hand{max-height:46cqh;width:auto !important}
+.ls .mx-things{font-size:clamp(1.3rem,8cqh,2rem)}
+.ls .mx-things.big{font-size:clamp(1.6rem,10cqh,2.6rem)}
+.ls .mx-expr{font-size:clamp(1.5rem,10cqh,2.4rem)}
+.ls .mx-expr.big{font-size:clamp(1.8rem,14cqh,3.2rem)}
+.ls .mx-target b{font-size:clamp(1.6rem,11cqh,2.6rem)}
+.ls .mx-latin{width:min(100%,78cqh,330px);gap:clamp(3px,1cqh,6px);padding:clamp(3px,1cqh,6px)}
+.ls .mx-sq-num{font-size:clamp(1rem,7cqh,2rem)}
+.ls .mx-chart-stage{padding:6px}
+/* پهنای جدول از تعداد ردیف‌ها: جدول ۵ ردیفه دو برابر پهن‌تر می‌شود تا خانه‌ها برای انگشت کودک بزرگ باشند */
+.ls .mx-chart{width:min(100%,calc(86cqh * 10 / var(--rows,10)),760px);max-width:none;gap:clamp(2px,.5cqh,4px);margin:0 auto}
+.ls .mx-chart-cell{font-size:clamp(.6rem,3.6cqh,1rem);border-radius:clamp(4px,1.4cqh,9px)}
+.ls .mx-line-stage .mx-line-wrap{width:100%;height:100%;min-height:0;display:grid;place-items:center;overflow:visible}
+.ls .mx-line-stage .mx-line{width:100%;height:100%;max-height:100%}
+.ls .mx-pattern .mx-pat-cell,.ls .mx-strip-cell{max-width:clamp(38px,22cqh,62px)}
+.ls .mx-seq-cell{min-width:clamp(40px,12cqh,58px)}
+.ls .mx-seq-cell b{font-size:clamp(1.05rem,7cqh,1.6rem)}
+.ls .mx-seq-cell i{font-size:clamp(1rem,6cqh,1.5rem)}
+.ls .mx-slot{width:clamp(42px,13cqh,62px);height:clamp(42px,13cqh,62px);font-size:clamp(1.2rem,7cqh,1.8rem)}
+.ls .mx-pair-row{min-height:clamp(48px,16cqh,70px);padding:4px 10px}
+.ls .mx-pair-item{font-size:clamp(1.3rem,8cqh,2rem);width:clamp(28px,9cqh,40px)}
+.ls .mx-cmp-side b{font-size:clamp(1.8rem,13cqh,3rem)}
+.ls .mx-cmp-slot{width:clamp(48px,16cqh,70px);height:clamp(48px,16cqh,70px);font-size:clamp(1.6rem,10cqh,2.4rem)}
+.ls .mx-stick,.ls .mx-bundle i{height:clamp(50px,26cqh,84px)}
+.ls .mx-box{width:clamp(64px,26cqh,96px);height:clamp(64px,26cqh,96px);font-size:clamp(48px,19cqh,74px)}
+.ls .mx-bead{width:clamp(30px,10cqh,40px);height:clamp(30px,10cqh,40px)}
+.ls .mx-story-place{font-size:clamp(2rem,18cqh,3.4rem)}
+.ls .mx-gm-box{min-height:clamp(44px,14cqh,56px);font-size:clamp(1.1rem,6.5cqh,1.5rem)}
+.ls .mx-gm-col{gap:clamp(5px,2cqh,10px)}
+
+/* ---------- پایان تمرین ---------- */
+.ls .mx-finish{margin:auto;width:min(100%,560px);max-height:100%;overflow:auto;padding:clamp(12px,calc(var(--lh) * .04),22px) 16px;gap:clamp(6px,calc(var(--lh) * .02),12px)}
+.ls .mx-finish h2{font-size:clamp(1.1rem,calc(var(--lh) * .055),1.6rem)}
+.ls .mx-finish-stars svg{width:clamp(32px,calc(var(--lh) * .12),56px);height:clamp(32px,calc(var(--lh) * .12),56px)}
+.ls .mx-finish-actions{align-items:center}
+.ls .mx-finish .art-ok{width:clamp(76px,calc(var(--lh) * .24),110px)}
+
+/* پیام تشویق: روی نوار عنوان می‌نشیند (نه روی سؤال و دکمه‌ها) و لمس را نمی‌گیرد */
+.ls-shell .kid-toast-layer{top:calc(var(--sat,0px) + 4px);pointer-events:none}
+.ls-shell .kid-toast{pointer-events:none;padding-block:6px;max-width:min(460px,70%)}
+.ls-shell .kid-toast p{font-size:clamp(.85rem,calc(var(--lh) * .045),1.1rem)}
+
+@media (prefers-reduced-motion:reduce){.ls .mx-qbar{animation:none}}
+
+/* ---------- تنظیم‌های ریزِ چند بازی ---------- */
+/* دست‌های گزینه: اندازه از بلندی صحنه، همیشه در یک ردیف */
+.ls .mx-choices-art.hands{flex-wrap:nowrap}
+.ls .mx-choices-art.hands .mx-choice{flex:0 1 auto;min-width:0;padding:clamp(3px,1cqh,6px)}
+.ls .mx-choices-art .mx-hand{height:clamp(70px,40cqh,150px) !important;width:auto !important;max-width:100%}
+.ls .mx-choices-art .mx-hands{max-width:100%}
+.ls .mx-stage .mx-hand{max-height:min(46cqh,100%)}
+/* کارت‌های پهن (تصویرِ عبارت، داستان): شبکهٔ منظم، بدون شکستن نامرتب */
+.ls .mx-cards.col{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));width:min(100%,900px);align-items:stretch}
+.ls .mx-cards.col .mx-card.wide{min-width:0;width:100%;min-height:clamp(52px,20cqh,96px);padding:clamp(4px,1.4cqh,10px)}
+.ls .mx-card svg{max-width:100%;height:auto;max-height:clamp(40px,20cqh,110px)}
+.ls .mx-level-chip.lv-1{background:oklch(93% .07 60)}
+
+/* اصلاح: میله‌های «بلندتر/کوتاه‌تر» داخل صحنهٔ flex جمع می‌شدند (پهنای ۲۶px) و بازی دیده نمی‌شد */
+/* همین مشکل برای مداد و گیره‌ها (اندازه‌گیری) */
+.ls .mx-stage>.mx-lengths,.ls .mx-stage>.mx-measure{width:min(100%,680px);align-self:center}
+/* اهداف لمسی کوچک برای انگشت کودک */
+.ls .mx-bead{min-width:38px;min-height:38px}
+.ls .mx-link{min-height:40px;padding-inline:8px}
