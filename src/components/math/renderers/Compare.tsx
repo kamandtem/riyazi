@@ -95,7 +95,7 @@ export const TensOnes: React.FC<RProps> = ({ round, answer, solved }) => {
     };
     return <>
       <Stage className="mx-center">
-        {bundled ? <PVScene tens={1} ones={n - 10} /> : <div className="mx-pv-scene" dir="ltr"><div className="mx-pv-ones wide"><Tally n={n} selected={sel} onStick={tap} /></div></div>}
+        {bundled ? <PVScene tens={1} ones={n - 10} /> : <div className="mx-pv-scene" dir="ltr"><div className="mx-pv-ones wide pick"><Tally n={n} selected={sel} onStick={tap} big /></div></div>}
         {bundled && <PVTable tens={1} ones={n - 10} />}
       </Stage>
       {bundled ? <><p className="mx-ask">یک ده‌تایی و {toFa(n - 10)} یکی، چه عددی است؟</p><Choices options={round.options!} wrong={wrong} disabled={solved} onPick={v => { if (v === n) answer(true); else { addWrong(v); answer(false, 'ده و چند تا؟'); } }} /></>

@@ -42,7 +42,7 @@ const scatter = (n: number) => {
 /* ---------- الگوها ---------- */
 const COLORS = ['#FF5A5F', '#3FA7F5', '#FFC83D', '#39C47A', '#A46BF5', '#FF8A3D'];
 const SHAPES = ['circle', 'triangle', 'square', 'star', 'heart'];
-const PICS = ['🍎', '🍌', '🐟', '🌸', '⭐', '🚗', '🐞', '🎈'];
+const PICS = ['🍎', '🍌', '🐟', '🌸', '⭐', '🚗', '🐞', '🎈', '🌙', '🍓', '🐢', '🦋', '☀️', '🍄'];
 const MOTIONS = ['👏', '🦶', '🙌', '👆'];
 export const MOTION_NAMES: Record<string, string> = { '👏': 'دست بزن', '🦶': 'پا بکوب', '🙌': 'دست‌ها بالا', '👆': 'انگشت بالا' };
 export type PatternToken = { kind: string; v: string; c?: string };
@@ -97,7 +97,7 @@ export const GENERATORS: Record<string, Gen> = {
     const { min, max, dir, reps, fiveStructure } = def.params;
     const n = rand(min, ramp(min, max, i, total));
     if (dir === 'toNumber') {
-      return { question: fiveStructure ? 'پنج تا قرمز و چند تا آبی؟ همه چند تا؟' : 'این چه عددی است؟', answer: n, options: nearOptions(n, 3, 0, 20),
+      return { question: fiveStructure ? 'پنج تا قرمز و چند تا آبی؟ همه با هم چند تا میشن؟' : 'این چه عددی است؟', answer: n, options: nearOptions(n, 3, 0, 20),
         data: { n, rep: pick(reps), fiveStructure } };
     }
     const vals = shuffle([n, ...nearOptions(n, 4, Math.max(1, min), max).filter(v => v !== n).slice(0, 2)]);
@@ -343,7 +343,7 @@ export const GENERATORS: Record<string, Gen> = {
   },
   story(def, i, total) {
     const max = ramp(6, def.params.max, i, total);
-    const join = Math.random() < 0.5;
+    const join = def.params.kind === 'join' ? true : def.params.kind === 'leave' ? false : Math.random() < 0.5;
     const S = pick(STORIES);
     let a: number, b: number;
     if (join) { a = rand(1, max - 1); b = rand(1, Math.min(5, max - a)); } else { a = rand(3, max); b = rand(1, Math.min(a, 5)); }
@@ -351,6 +351,42 @@ export const GENERATORS: Record<string, Gen> = {
     const r = join ? a + b : a - b;
     const exprs = shuffle([{ a, b, op: join ? '+' : '-' }, { a, b, op: join ? '-' : '+' }, { a: b, b: a, op: '-' }].filter((e, k, arr) => !(e.op === '-' && e.a < e.b) && arr.findIndex(x => x.a === e.a && x.b === e.b && x.op === e.op) === k));
     return { question: text + ' ' + S.ask, answer: r, options: nearOptions(r, 3, 0, 20), data: { a, b, join, emoji: S.emoji, place: S.place, exprs, mode: def.params.mode } };
+  },
+
+  /* ---------- ساعت (فقط ساعت کامل؛ عقربهٔ بزرگ همیشه روی ۱۲) ---------- */
+  clock(def, i) {
+    const mode: string = def.params.mode;
+    const wrap = (h: number) => ((h - 1 + 120) % 12) + 1;
+    if (mode === 'read') {
+      const h = i < 3 ? pick([12, 3, 6, 9]) : rand(1, 12);
+      return { question: 'ساعت چند است؟', answer: h, options: shuffle([h, ...shuffle(range(1, 12).filter(v => v !== h)).slice(0, 2)]), data: { mode, h } };
+    }
+    if (mode === 'pick') {
+      const h = rand(1, 12);
+      const others = shuffle(range(1, 12).filter(v => v !== h && v !== wrap(h + 6))).slice(0, 2);
+      // یک گزینهٔ گمراه‌کننده: عقربه‌ها جابه‌جا (کوچک روی ۱۲، بزرگ روی h) تا کودک فرق دو عقربه را ببیند
+      const clocks = shuffle([{ h, swap: false }, { h: others[0], swap: false }, i >= 3 && h !== 12 ? { h, swap: true } : { h: others[1], swap: false }]);
+      return { question: `کدام ساعت، ساعت ${fa(h)} را نشان می‌دهد؟`, speak: `کدام ساعت، ساعت ${numWord(h)} را نشان می‌دهد؟`, answer: clocks.findIndex(c => c.h === h && !c.swap), data: { mode, h, clocks } };
+    }
+    if (mode === 'story' && i % 2 === 1) {
+      const later = Math.random() < 0.6;
+      const k = rand(1, i < 5 ? 2 : 3);
+      const T = pick(later ? CLOCK_LATER : CLOCK_BEFORE);
+      const start = rand(T.from, T.to);
+      const target = wrap(later ? start + k : start - k);
+      const text = T.text.replace('{h}', fa(start)).replace('{k}', fa(k));
+      return { question: text, speak: T.text.replace('{h}', numWord(start)).replace('{k}', numWord(k)), answer: target,
+        data: { mode: 'set', h: target, start, k, later, hint: later ? `از ${fa(start)}، ${fa(k)} عدد جلو برو.` : `از ${fa(start)}، ${fa(k)} عدد عقب برو.` } };
+    }
+    if (mode === 'story') {
+      const T = pick(CLOCK_DAY);
+      const h = rand(T.from, T.to);
+      const start = wrap(h + rand(3, 9));
+      return { question: `${T.text.replace('{h}', fa(h))} ساعت را نشان بده.`, speak: `${T.text.replace('{h}', numWord(h))} ساعت را نشان بده`, answer: h, data: { mode: 'set', h, start } };
+    }
+    const h = rand(1, 12);
+    let start = rand(1, 12); while (start === h) start = rand(1, 12);
+    return { question: `ساعت ${fa(h)} را نشان بده. عقربهٔ کوچک را جابه‌جا کن.`, speak: `ساعت ${numWord(h)} را نشان بده`, answer: h, data: { mode: 'set', h, start } };
   },
 
   /* ---------- بشمار و رنگ کن / از این‌ها رنگ کن (کتاب ص ۳ و ۹) ---------- */
@@ -425,11 +461,41 @@ const ALL_OBJ = [...FRUITS, ...ANIMALS, ...TOYS];
 const THINGS_OBJ = ['🔑', '☂️', '🧤', '👟', '🚗', '🎒', '🧦', '🎈'];
 
 const STORIES = [
+  { emoji: '🐰', place: '🌾', join: '{a} خرگوش در مزرعه بودند. {b} خرگوش دیگر از راه رسیدند.', leave: '{a} خرگوش در مزرعه بودند. {b} تا به لانه رفتند.', ask: 'حالا چند خرگوش در مزرعه است؟' },
+  { emoji: '🎈', place: '🎪', join: 'سارا {a} بادکنک داشت. بابا {b} بادکنک دیگر برایش خرید.', leave: 'سارا {a} بادکنک داشت. {b} تا ترکید.', ask: 'حالا سارا چند بادکنک دارد؟' },
+  { emoji: '🍎', place: '🧺', join: '{a} سیب در سبد بود. علی {b} سیب دیگر چید و در سبد گذاشت.', leave: '{a} سیب در سبد بود. علی {b} سیب به دوستانش داد.', ask: 'حالا چند سیب در سبد است؟' },
+  { emoji: '🚗', place: '🅿️', join: '{a} ماشین در پارکینگ بود. {b} ماشین دیگر آمدند.', leave: '{a} ماشین در پارکینگ بود. {b} ماشین بیرون رفتند.', ask: 'حالا چند ماشین در پارکینگ است؟' },
+  { emoji: '🐞', place: '🌿', join: '{a} کفشدوزک روی برگ بودند. {b} کفشدوزک دیگر نشستند.', leave: '{a} کفشدوزک روی برگ بودند. {b} تا پرواز کردند.', ask: 'حالا چند کفشدوزک روی برگ است؟' },
+  { emoji: '✏️', place: '🎒', join: 'مینا {a} مداد در کیفش داشت. مادر {b} مداد دیگر به او داد.', leave: 'مینا {a} مداد در کیفش داشت. {b} مداد را به دوستش قرض داد.', ask: 'حالا چند مداد در کیف مینا است؟' },
+
   { emoji: '🦆', place: '💧', join: '{a} اردک در آب بودند. {b} اردک دیگر هم آمدند.', leave: '{a} اردک در آب بودند. {b} تا از آب بیرون رفتند.', ask: 'حالا چند اردک در آب است؟' },
   { emoji: '🐦', place: '🌳', join: '{a} پرنده روی درخت بودند. {b} پرندهٔ دیگر نشستند.', leave: '{a} پرنده روی درخت بودند. {b} تا پرواز کردند.', ask: 'حالا چند پرنده روی درخت است؟' },
   { emoji: '🐟', place: '🫙', join: '{a} ماهی در تنگ بود. {b} ماهی دیگر به تنگ اضافه شد.', leave: '{a} ماهی در تنگ بود. {b} ماهی را به حوض بردیم.', ask: 'حالا چند ماهی در تنگ است؟' },
   { emoji: '🍪', place: '🍽️', join: '{a} کلوچه در بشقاب بود. مادر {b} کلوچهٔ دیگر گذاشت.', leave: '{a} کلوچه در بشقاب بود. بچه‌ها {b} تا را خوردند.', ask: 'حالا چند کلوچه در بشقاب است؟' },
   { emoji: '🧒', place: '🚌', join: '{a} نفر در اتوبوس بودند. در ایستگاه {b} نفر سوار شدند.', leave: '{a} نفر در اتوبوس بودند. در ایستگاه {b} نفر پیاده شدند.', ask: 'حالا چند نفر در اتوبوس است؟' },
+];
+
+/* قصه‌های ساعت: {h} ساعت، {k} چند ساعت */
+const CLOCK_DAY = [
+  { text: 'سارا ساعت {h} صبح از خواب بیدار شد.', from: 6, to: 8 },
+  { text: 'مدرسه ساعت {h} صبح شروع می‌شود.', from: 7, to: 8 },
+  { text: 'ما ساعت {h} ناهار می‌خوریم.', from: 12, to: 12 },
+  { text: 'ما ساعت {h} بعدازظهر ناهار می‌خوریم.', from: 1, to: 2 },
+  { text: 'علی ساعت {h} بعدازظهر به پارک رفت.', from: 3, to: 5 },
+  { text: 'بابا ساعت {h} عصر به خانه آمد.', from: 5, to: 7 },
+  { text: 'کارتون ساعت {h} شروع می‌شود.', from: 4, to: 6 },
+  { text: 'مینا ساعت {h} شب می‌خوابد.', from: 8, to: 10 },
+  { text: 'کلاس نقاشی ساعت {h} است.', from: 3, to: 5 },
+];
+const CLOCK_LATER = [
+  { text: 'علی ساعت {h} شروع به بازی کرد و {k} ساعت بازی کرد. بازی ساعت چند تمام شد؟ عقربهٔ کوچک را جلو ببر.', from: 3, to: 6 },
+  { text: 'سارا ساعت {h} به مهمانی رفت. {k} ساعت بعد برگشت. ساعت چند برگشت؟', from: 4, to: 7 },
+  { text: 'الان ساعت {h} است. {k} ساعت دیگر ساعت چند می‌شود؟', from: 1, to: 12 },
+  { text: 'مدرسه ساعت {h} شروع شد و {k} ساعت طول کشید. مدرسه ساعت چند تمام شد؟', from: 8, to: 9 },
+];
+const CLOCK_BEFORE = [
+  { text: 'الان ساعت {h} است. {k} ساعت پیش ساعت چند بود؟ عقربهٔ کوچک را عقب ببر.', from: 1, to: 12 },
+  { text: 'مینا ساعت {h} به خانه رسید. {k} ساعت قبل از خانه بیرون رفته بود. ساعت چند بیرون رفت؟', from: 5, to: 8 },
 ];
 
 export function buildRound(def: ExerciseDef, i: number, total: number): Round {

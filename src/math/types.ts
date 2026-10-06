@@ -27,7 +27,7 @@ export type ExerciseType =
   | 'tensOnes'
   | 'pattern' | 'chart' | 'latinSquare' | 'shapeCorners' | 'compareLength' | 'measureUnits'
   | 'addCombine' | 'takeAway' | 'expression' | 'lineJump' | 'hiddenPart' | 'makeTen' | 'repMatch' | 'story'
-  | 'colorCount' | 'fingerMatch' | 'groupMatch' | 'patternStrip';
+  | 'colorCount' | 'fingerMatch' | 'groupMatch' | 'patternStrip' | 'clock';
 
 /** نمایش‌های مختلفِ یک مقدار (از عینی به نمادین) */
 export type Rep = 'objects' | 'dots' | 'tally' | 'tenframe' | 'numeral' | 'line';

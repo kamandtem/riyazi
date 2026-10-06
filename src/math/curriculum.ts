@@ -31,5 +31,5 @@ export const HOUSES: Record<HouseId, HouseDef> = {
   subtraction: { id: 'subtraction', island: 'operations', title: 'خانهٔ تفریق', subtitle: 'بردار و ببین', emoji: '➖', tone: 'green', text: 'چندتا را بردار یا خط بزن و ببین چند تا مانده است.' },
   numberline:  { id: 'numberline', island: 'operations', title: 'خانهٔ محور', subtitle: 'جلو و عقب بپر', emoji: '🐸', tone: 'blue', text: 'قورباغه روی محور جلو می‌پرد (جمع) و عقب می‌پرد (تفریق).' },
   bonds:       { id: 'bonds', island: 'operations', title: 'خانهٔ ساختن ده', subtitle: 'دو تکهٔ یک عدد', emoji: '🔟', tone: 'violet', text: 'هر عدد از دو تکه ساخته می‌شود؛ ده را کامل کن و تکهٔ پنهان را پیدا کن.' },
-  problems:    { id: 'problems', island: 'operations', title: 'خانهٔ مسئله', subtitle: 'قصه‌های عددی', emoji: '📖', tone: 'sun', text: 'قصه را گوش کن، تصویرش را ببین و بفهم چیزی اضافه شد یا کم شد.' },
+  problems:    { id: 'problems', island: 'operations', title: 'خانهٔ مسئله', subtitle: 'قصه‌های عددی و ساعت', emoji: '📖', tone: 'sun', text: 'قصه را گوش کن، تصویرش را ببین و بفهم چیزی اضافه شد یا کم شد. با ساعت هم کار کن: ساعت را بخوان و عقربهٔ کوچک را جابه‌جا کن.' },
 };

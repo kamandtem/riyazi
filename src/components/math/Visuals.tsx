@@ -167,11 +167,11 @@ export const frameFill = (a: number, b = 0, ca = RED, cb = BLUE, cells = 10) => 
 /* ---------------- چوب‌خط با دسته‌های پنج‌تایی ----------------
  * مثل کتاب: چهار چوب‌خط ایستاده و پنجمی کج، روی همان چهار تا. در همهٔ برنامه همین شکل استفاده می‌شود.
  */
-export const Tally: React.FC<{ n: number; crossed?: number[]; selected?: number[]; onStick?: (i: number) => void; color?: string; small?: boolean; split?: number; animateLast?: boolean }> =
-  ({ n, crossed = [], selected = [], onStick, color = '#D8903F', small, split, animateLast }) => {
+export const Tally: React.FC<{ n: number; crossed?: number[]; selected?: number[]; onStick?: (i: number) => void; color?: string; small?: boolean; big?: boolean; split?: number; animateLast?: boolean }> =
+  ({ n, crossed = [], selected = [], onStick, color = '#D8903F', small, big, split, animateLast }) => {
   const groups: number[][] = [];
   for (let i = 0; i < n; i += 5) groups.push(Array.from({ length: Math.min(5, n - i) }, (_, k) => i + k));
-  return <div className={`mx-tally ${small ? 'small' : ''}`} dir="ltr">
+  return <div className={`mx-tally ${small ? 'small' : ''} ${big ? 'big' : ''}`} dir="ltr">
     {groups.map((g, gi) => <svg key={gi} viewBox="-4 -4 72 72" className="mx-tally-group" aria-hidden={!onStick}>
       {g.map((idx, k) => {
         const isDiag = k === 4;
@@ -180,9 +180,9 @@ export const Tally: React.FC<{ n: number; crossed?: number[]; selected?: number[
         const x = crossed.includes(idx);
         const fresh = animateLast && idx === n - 1;
         return <g key={idx} onClick={onStick ? () => onStick(idx) : undefined} style={onStick ? { cursor: 'pointer' } : undefined} className={`${isDiag ? 'mx-tally-diag' : 'mx-tally-stick'} ${fresh ? 'fresh' : ''}`}>
-          {onStick && <line {...line} stroke="transparent" strokeWidth={16} />}
-          <line {...line} stroke={x ? '#b9a48d' : '#7a4a1c'} strokeWidth={9} strokeLinecap="round" pathLength={1} />
-          <line {...line} stroke={x ? '#e6d8c6' : c} strokeWidth={5} strokeLinecap="round" pathLength={1} />
+          {onStick && <line {...line} stroke="transparent" strokeWidth={isDiag ? 18 : 13} strokeLinecap="round" />}
+          <line {...line} stroke={x ? '#b9a48d' : '#7a4a1c'} strokeWidth={big ? 11 : 9} strokeLinecap="round" pathLength={1} />
+          <line {...line} stroke={x ? '#e6d8c6' : c} strokeWidth={big ? 7 : 5} strokeLinecap="round" pathLength={1} />
           {x && !isDiag && <line x1={line.x1 - 8} y1={37} x2={line.x1 + 8} y2={25} stroke="#FF5A5F" strokeWidth={4.5} strokeLinecap="round" />}
           {x && isDiag && <line x1={26} y1={18} x2={38} y2={44} stroke="#FF5A5F" strokeWidth={4.5} strokeLinecap="round" />}
         </g>;

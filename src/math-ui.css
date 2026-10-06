@@ -459,3 +459,22 @@ button.mx-pair-row{cursor:pointer}
 .mx-mp-title{display:inline-flex;align-items:center;gap:6px}
 .mx-mp-ex{gap:2px}
 .mx-mp-houses span .kid-icon{margin-bottom:1px}
+
+/* انتخاب چوب‌خط‌ها در «یک ده‌تایی و چند یکی»: چوب‌ها و زمینهٔ سبز بزرگ‌تر تا لمس برای کودک راحت باشد */
+.mx-tally.big{gap:clamp(14px,2.4vw,26px);row-gap:clamp(12px,2vw,22px)}
+.mx-tally.big .mx-tally-group{width:clamp(104px,16vw,150px);height:clamp(104px,16vw,150px)}
+.mx-tally.big .mx-tally-stick,.mx-tally.big .mx-tally-diag{touch-action:manipulation}
+.mx-pv-ones.wide.pick{min-height:clamp(170px,34vh,300px);padding:clamp(14px,2.6vw,28px) clamp(12px,2vw,22px);border-radius:28px;border:3px dashed oklch(78% .09 150);background:oklch(94% .05 150)}
+
+/* ساعت */
+.mx-clock{display:block;max-width:100%;height:auto;filter:drop-shadow(0 4px 0 rgba(122,74,28,.18))}
+.mx-clock.live{cursor:grab;user-select:none;-webkit-user-select:none}
+.mx-clock.live:active{cursor:grabbing}
+.mx-clock-stage{display:flex;flex-direction:column;align-items:center;gap:10px}
+.mx-clock-row{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(10px,2vw,22px)}
+.mx-clock-card{padding:8px;border-radius:22px}
+.mx-clock-card .mx-clock{width:clamp(110px,18vw,160px)!important;height:auto!important}
+.mx-clock-tools{display:flex;align-items:center;gap:12px}
+.mx-clock-now{font-size:1.4rem;font-weight:900;color:#5a3510;min-width:6.5em;text-align:center}
+.mx-clock-legend{font-weight:800;font-size:.9rem;color:#7a5a3a;margin:0}
+.mx-clock-legend .h{color:#E8473F}.mx-clock-legend .m{color:#2F8FE8}

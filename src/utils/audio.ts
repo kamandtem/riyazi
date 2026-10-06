@@ -8,7 +8,7 @@ import { TextToSpeech, QueueStrategy } from '@capacitor-community/text-to-speech
 
 const AUDIO_KEY = 'riazi_audio_v1';
 /** سقف صدای موسیقی پس‌زمینه: عمداً خیلی پایین تا حواس کودک پرت نشود */
-const MUSIC_MAX = 0.16;
+const MUSIC_MAX = 0.3;
 const MUSIC_SRC = '/assets/audio/lullaby.mp3';
 
 export interface AudioSettings { sfx: number; music: number; }
@@ -25,8 +25,8 @@ const readSettings = (): AudioSettings => {
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
-  // این نسخه عمداً کاملا بی‌صداست: هیچ افکت، موسیقی یا گفتاری پخش نمی‌شود.
-  private isMuted: boolean = true;
+  // صدا روشن است؛ بلندی موسیقی و افکت‌ها از پنل تنظیمات کنترل می‌شود.
+  private isMuted: boolean = false;
   private sfxBus: GainNode | null = null;
   private settings: AudioSettings = typeof window !== 'undefined' ? readSettings() : { sfx: 0.8, music: 0.6 };
   private musicEl: HTMLAudioElement | null = null;
@@ -82,11 +82,22 @@ class SoundEngine {
       this.musicEl = new Audio(MUSIC_SRC);
       this.musicEl.loop = true;
       this.musicEl.preload = 'auto';
+      this.musicEl.setAttribute('playsinline', '');
+      // اگر فایل هنوز آماده نبود، به‌محض آماده شدن پخش شود
+      this.musicEl.addEventListener('canplaythrough', () => { if (this.musicWanted) this.tryPlay(); });
+      // اگر WebView حلقه را قطع کرد، دوباره از اول پخش شود
+      this.musicEl.addEventListener('ended', () => { if (this.musicEl) { this.musicEl.currentTime = 0; this.tryPlay(); } });
     }
     this.applyMusicVolume();
-    if (this.settings.music <= 0 || this.isMuted || document.hidden) return;
-    if (this.musicEl.paused) this.musicEl.play().catch(() => { /* هنوز لمسی نشده */ });
+    this.tryPlay();
   }
+  private tryPlay() {
+    const el = this.musicEl;
+    if (!el || this.settings.music <= 0 || this.isMuted || document.hidden) return;
+    if (el.paused) el.play().catch(() => { /* هنوز لمسی نشده؛ با لمس بعدی دوباره امتحان می‌شود */ });
+  }
+  /** آیا موسیقی واقعاً در حال پخش است؟ */
+  public isMusicPlaying(): boolean { return !!this.musicEl && !this.musicEl.paused; }
   public pauseMusic() { this.musicEl?.pause(); }
   public resumeMusic() { if (this.musicWanted) this.startMusic(); }
   private duck(on: boolean) { this.ducked = on; this.applyMusicVolume(); }
@@ -392,12 +403,19 @@ export const sound = new SoundEngine();
 
 // شروع موسیقی با اولین لمس، و توقف وقتی برنامه به پس‌زمینه می‌رود
 if (typeof window !== 'undefined') {
+  // تا وقتی موسیقی واقعاً شروع نشده، با هر لمس دوباره امتحان کن (اولین play گاهی در WebView رد می‌شود)
   const kick = () => {
     sound.startMusic();
-    window.removeEventListener('pointerdown', kick, true);
-    window.removeEventListener('keydown', kick, true);
+    window.setTimeout(() => {
+      if (sound.isMusicPlaying()) {
+        window.removeEventListener('pointerdown', kick, true);
+        window.removeEventListener('touchend', kick, true);
+        window.removeEventListener('keydown', kick, true);
+      }
+    }, 600);
   };
   window.addEventListener('pointerdown', kick, true);
+  window.addEventListener('touchend', kick, true);
   window.addEventListener('keydown', kick, true);
   document.addEventListener('visibilitychange', () => { if (document.hidden) { sound.pauseMusic(); sound.stopSpeech(); } else sound.resumeMusic(); });
 }
