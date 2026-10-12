@@ -1,10 +1,10 @@
-name: Build Android APK
+name: Build Android Release
 on:
   workflow_dispatch:
   push:
     branches: [main]
 jobs:
-  apk:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,11 +26,46 @@ jobs:
           fi
           npm run assets:generate
           npx cap sync android
-      - name: Build debug APK
+      - name: Restore keystore
+        run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/riazi.jks
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      - name: Configure release signing
+        run: |
+          python3 - <<'PY'
+          import re
+          p = "android/app/build.gradle"
+          s = open(p, encoding="utf-8").read()
+          if "signingConfigs.release" not in s:
+              s, n = re.subn(r"(buildTypes\s*\{\s*release\s*\{)", r"\1\n            signingConfig signingConfigs.release", s, count=1)
+              assert n == 1, "release buildType not found"
+              block = (
+                  "    signingConfigs {\n"
+                  "        release {\n"
+                  "            storeFile file('riazi.jks')\n"
+                  "            storePassword System.getenv('KEYSTORE_PASSWORD')\n"
+                  "            keyAlias System.getenv('KEY_ALIAS')\n"
+                  "            keyPassword System.getenv('KEY_PASSWORD')\n"
+                  "        }\n"
+                  "    }\n"
+              )
+              s = s.replace("    buildTypes {", block + "    buildTypes {", 1)
+              open(p, "w", encoding="utf-8").write(s)
+          PY
+      - name: Build signed release APK and AAB
         working-directory: android
-        run: ./gradlew assembleDebug
-      - name: Upload APK
+        run: ./gradlew assembleRelease bundleRelease
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
-          name: magic-alphabet-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: riazi-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+      - name: Upload release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: riazi-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
