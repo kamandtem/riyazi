@@ -34,7 +34,7 @@ export function speakable(t: string) {
  * اجرای یک تمرین: چند دور، بازخورد مهربان، ستاره‌ها.
  * نمایشگرِ هر نوع فقط answer(true/false) را صدا می‌زند؛ بقیه (امتیاز، رفتن به دور بعد، ذخیره) این‌جاست.
  */
-export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; onHome?: () => void; onNext?: () => void; nextTitle?: string }> = ({ def, onExit, onHome, onNext, nextTitle }) => {
+export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; onHome?: () => void; onNext?: () => void; nextTitle?: string; nextLocked?: boolean }> = ({ def, onExit, onHome, onNext, nextTitle, nextLocked }) => {
   const total = def.rounds || 8;
   const { rotated, style } = useLandscape();
   const [slot, setSlot] = useState<HTMLElement | null>(null);
@@ -120,7 +120,7 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
                 <p>{toFa(firstTry)} از {toFa(total)} را بار اول درست گفتی.</p>
                 <div className="mx-finish-actions">
                   <button type="button" className="mx-tool undo" onClick={restart}><RotateCcw /> دوباره</button>
-                  {onNext && <button type="button" className="mx-tool add" onClick={() => { sound.playPop(); onNext(); }}><ArrowRight /> {nextTitle || 'بعدی'}</button>}
+                  {onNext && <button type="button" className="mx-tool add" onClick={() => { sound.playPop(); onNext(); }}>{nextLocked ? <span aria-hidden="true">🔒</span> : <ArrowRight />} {nextTitle || 'بعدی'}</button>}
                   <OkArt className="mx-ok" ready caption="برگشت به خانه" onClick={back} />
                 </div>
               </section>}

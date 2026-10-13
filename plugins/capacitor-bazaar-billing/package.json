@@ -1,0 +1,11 @@
+{
+  "name": "capacitor-bazaar-billing",
+  "version": "1.0.0",
+  "description": "پرداخت درون‌برنامه‌ای کافه‌بازار (Poolakey) برای Capacitor",
+  "main": "src/index.js",
+  "files": ["android/", "src/"],
+  "capacitor": {
+    "android": { "src": "android" }
+  },
+  "peerDependencies": { "@capacitor/core": ">=7.0.0" }
+}

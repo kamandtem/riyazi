@@ -34,8 +34,10 @@ export const prereqsMet = (p: MathProgress, id: string) => (EXERCISE_BY_ID[id]?.
 export const LEARNING_PATH: string[] = [...EXERCISES].map((e, i) => ({ e, i })).sort((a, b) => a.e.page - b.e.page || a.i - b.i).map(x => x.e.id);
 
 /** تمرین پیشنهادی بعدی: اولین تمرین مسیر که هنوز یاد گرفته نشده و پیش‌نیازهایش انجام شده */
-export function nextRecommended(p: MathProgress): string {
-  return LEARNING_PATH.find(id => !isMastered(p, id) && prereqsMet(p, id)) || LEARNING_PATH.find(id => !isMastered(p, id)) || LEARNING_PATH[0];
+export function nextRecommended(p: MathProgress, allowed: (id: string) => boolean = () => true): string {
+  const open = LEARNING_PATH.filter(allowed);
+  return open.find(id => !isMastered(p, id) && prereqsMet(p, id)) || open.find(id => !isMastered(p, id))
+    || LEARNING_PATH.find(id => !isMastered(p, id) && prereqsMet(p, id)) || LEARNING_PATH.find(id => !isMastered(p, id)) || LEARNING_PATH[0];
 }
 
 export function houseStats(p: MathProgress, house: HouseId) {

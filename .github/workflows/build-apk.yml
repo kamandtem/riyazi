@@ -26,6 +26,7 @@ jobs:
           fi
           npm run assets:generate
           npx cap sync android
+          python3 scripts/patch-android.py android
       - name: Restore keystore
         run: echo "$KEYSTORE_BASE64" | base64 -d > android/app/riazi.jks
         env:

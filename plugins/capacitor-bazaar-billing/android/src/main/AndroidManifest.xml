@@ -1,0 +1,3 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- مجوز PAY_THROUGH_BAZAAR، queries و BillingReceiver از خود کتابخانهٔ Poolakey به برنامه اضافه می‌شود (manifest merger) -->
+</manifest>

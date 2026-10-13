@@ -30,7 +30,8 @@
     "@capacitor/app": "^7.0.1",
     "@capacitor/status-bar": "^7.0.1",
     "@capacitor-community/text-to-speech": "^6.1.0",
-    "@capacitor/screen-orientation": "^7.0.1"
+    "@capacitor/screen-orientation": "^7.0.1",
+    "capacitor-bazaar-billing": "file:./plugins/capacitor-bazaar-billing"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

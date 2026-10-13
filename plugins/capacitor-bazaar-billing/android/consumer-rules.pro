@@ -1,0 +1,2 @@
+-keep class ir.cafebazaar.poolakey.** { *; }
+-keep class ir.riazi.billing.** { *; }
