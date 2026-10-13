@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { sound } from '../utils/audio';
 import { useBackHandler } from '../utils/backNav';
-import { buy, fetchPrice, FREE_PER_HOUSE, refreshPurchases } from '../utils/billing';
+import { buy, fetchPrice, FREE_ROUNDS, refreshPurchases } from '../utils/billing';
 import { toFa } from '../utils/fa';
 
 /**
- * پنجرهٔ «پرداخت کن»؛ وقتی کودک به تمرین سوم (یا بعدتر) هر خانه می‌رسد.
+ * پنجرهٔ «پرداخت کن»؛ وقتی کودک در یک تمرین به مرحلهٔ چهارم می‌رسد.
  * پرداخت از راه صفحهٔ رسمی کافه‌بازار انجام می‌شود. پس از پرداخت، usePremium همه‌جا را باز می‌کند
- * و این پنجره خودش بسته می‌شود (صفحهٔ بالایی دیگر آن را نشان نمی‌دهد).
+ * و این پنجره خودش بسته می‌شود و تمرین از همان مرحله ادامه پیدا می‌کند.
  */
 export const Paywall: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [price, setPrice] = useState('');
@@ -33,7 +33,7 @@ export const Paywall: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     <section className="pw-panel" dir="rtl" role="dialog" aria-modal="true" aria-label="باز کردن همهٔ تمرین‌ها" onClick={e => e.stopPropagation()}>
       <div className="pw-lock" aria-hidden="true">🔒</div>
       <h2>همهٔ تمرین‌ها را باز کن</h2>
-      <p>{toFa(FREE_PER_HOUSE)} تمرین اولِ هر خانه رایگان بود. با یک بار پرداخت، همهٔ تمرین‌های دهکدهٔ ریاضی برای همیشه باز می‌شود.</p>
+      <p>{toFa(FREE_ROUNDS)} مرحلهٔ اولِ هر تمرین رایگان بود. با یک بار پرداخت، همهٔ تمرین‌های دهکدهٔ ریاضی برای همیشه باز می‌شود.</p>
       <ul className="pw-list">
         <li>✨ همهٔ تمرین‌های هر سه جزیره</li>
         <li>♾️ فقط یک بار پرداخت، برای همیشه</li>

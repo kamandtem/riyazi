@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { registerPlugin } from '@capacitor/core';
-import { EXERCISE_BY_ID, exercisesOfHouse } from '../math/exercises';
 
 /**
  * پرداخت درون‌برنامه‌ای کافه‌بازار (SDK رسمی Poolakey، از راه پلاگین BazaarBilling).
@@ -8,8 +7,8 @@ import { EXERCISE_BY_ID, exercisesOfHouse } from '../math/exercises';
  * با نصب دوباره یا گوشی تازه، از حساب بازار همان کاربر بازیابی می‌شود.
  */
 export const PRODUCT_ID = 'riaziaval';
-/** تعداد تمرین رایگان در هر خانه */
-export const FREE_PER_HOUSE = 2;
+/** تعداد مرحله (دور) رایگان در هر تمرین؛ از مرحلهٔ چهارم به بعد پرداخت لازم است */
+export const FREE_ROUNDS = 3;
 
 interface PurchaseRow { productId: string; purchaseState: 'PURCHASED' | 'REFUNDED'; orderId?: string; purchaseToken?: string }
 interface BazaarBillingPlugin {
@@ -39,13 +38,13 @@ export function usePremium(): boolean {
   return v;
 }
 
-// ───────────── قفل تمرین‌ها ─────────────
-/** سومین تمرین (و بعدی‌ها) در هر خانه قفل است، مگر کاربر خریده باشد */
-export function isLocked(exId: string, hasPremium = premium): boolean {
-  if (hasPremium) return false;
-  const e = EXERCISE_BY_ID[exId];
-  if (!e) return false;
-  return exercisesOfHouse(e.house).findIndex(x => x.id === exId) >= FREE_PER_HOUSE;
+// ───────────── قفل مرحله‌ها ─────────────
+/**
+ * همهٔ تمرین‌ها در فهرست باز هستند؛ قفل داخل هر تمرین است:
+ * سه مرحلهٔ اول (دور ۰، ۱ و ۲) رایگان؛ مرحلهٔ چهارم (دور ۳) به بعد تا پرداخت نشده قفل است.
+ */
+export function isRoundLocked(roundIndex: number, hasPremium = premium): boolean {
+  return !hasPremium && roundIndex >= FREE_ROUNDS;
 }
 
 // ───────────── کار با بازار ─────────────

@@ -10,7 +10,6 @@ import { MapScreen } from './shared/MapScreen';
 import { MapSpot } from './shared/MapSpot';
 import { CloseArt, OkArt } from './shared/ArtButtons';
 import { ExerciseIcon } from './shared/KidIcon';
-import { isLocked, usePremium } from '../utils/billing';
 
 /* همان جای سه جزیره روی نقشهٔ پروژهٔ الفبا */
 const PLACES = [
@@ -22,8 +21,7 @@ const PLACES = [
 export const IslandMap: React.FC<{ onIsland: (id: IslandId) => void; onExercise: (id: string) => void; onStart: () => void }> = ({ onIsland, onExercise, onStart }) => {
   const [help, setHelp] = useState(false);
   const p = useMathProgress();
-  const premium = usePremium();
-  const rec = EXERCISE_BY_ID[nextRecommended(p, id => !isLocked(id, premium))];
+  const rec = EXERCISE_BY_ID[nextRecommended(p)];
   const recIsland = islandOfExercise(rec.id);
   useBackHandler(() => { if (help) { setHelp(false); return; } onStart(); });
   return <MapScreen id="islands" map="/assets/island-map.webp" alt="نقشهٔ جزیره‌های دهکدهٔ ریاضی" overlay={<>

@@ -1,8 +1,8 @@
 # پرداخت درون‌برنامه‌ای کافه‌بازار
 
 - محصول: `riaziaval` (خرید ماندگار، consume نمی‌شود) — کلید RSA در `capacitor.config.ts` (بخش `BazaarBilling`).
-- قانون: ۲ تمرین اول هر خانه رایگان؛ از تمرین سوم، قفل 🔒 و پنجرهٔ پرداخت. پس از خرید همه‌چیز باز است.
-  عدد رایگان‌ها: `FREE_PER_HOUSE` در `src/utils/billing.ts`.
+- قانون: همهٔ تمرین‌ها در فهرست باز هستند؛ قفل داخل هر تمرین است. ۳ مرحلهٔ اول هر تمرین رایگان؛ وقتی کودک به مرحلهٔ چهارم برسد پنجرهٔ پرداخت نشان داده می‌شود. پس از خرید همه‌چیز باز است و تمرین از همان مرحله ادامه می‌یابد.
+  عدد مرحله‌های رایگان: `FREE_ROUNDS` در `src/utils/billing.ts`.
 - پلاگین بومی: `plugins/capacitor-bazaar-billing` (روی SDK رسمی Poolakey نسخه ۲.۲.۰ (همان نسخه‌ای که پلاگین رسمی فلاتر بازار استفاده می‌کند و در jitpack ساخته شده است)). مجوز، queries و receiver را خود Poolakey به manifest اضافه می‌کند.
 - اجرا: `npm install && npm run build && npx cap add android && npx cap sync android && python3 scripts/patch-android.py android` (workflow گیت‌هاب همین را انجام می‌دهد).
 

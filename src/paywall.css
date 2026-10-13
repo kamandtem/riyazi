@@ -15,7 +15,12 @@
 @keyframes pwFade{from{opacity:0}to{opacity:1}}
 @keyframes pwPop{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
 
-/* کارت تمرین قفل‌شده در فهرست خانه */
-.mx-ex-card.paid-lock{background:#F4EEDF;filter:saturate(.55)}
-.mx-ex-card.paid-lock .mx-ex-icon{opacity:.55}
-.mx-ex-lock{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#FFD25A;box-shadow:0 3px 0 #D98A0B;font-size:1.2rem;font-style:normal}
+/* داخل بازی (صفحهٔ افقی و کوتاه): پنجره فشرده‌تر تا بدون اسکروب جا شود */
+.ls-shell .pw-scene{padding:calc(var(--sat,0px) + 8px) 12px calc(var(--sab,0px) + 8px)}
+.ls-shell .pw-panel{width:min(100%,560px);padding:12px 18px 10px;border-radius:26px}
+.ls-shell .pw-lock{width:54px;height:54px;margin:-30px auto 2px;font-size:1.7rem}
+.ls-shell .pw-panel h2{margin:2px 0 4px;font-size:1.2rem}
+.ls-shell .pw-panel p{margin:0 0 6px;font-size:.9rem;line-height:1.6}
+.ls-shell .pw-list{margin:0 0 8px;padding:6px 12px;gap:2px;font-size:.85rem;line-height:1.5}
+.ls-shell .pw-buy{min-height:46px;font-size:1.05rem}
+.ls-shell .pw-row{margin-top:6px}

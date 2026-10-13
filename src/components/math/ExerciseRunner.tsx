@@ -14,6 +14,8 @@ import { RENDERERS } from './renderers';
 import { ActionSlot } from './Visuals';
 import { useLandscape } from '../../utils/orientation';
 import { ExerciseIcon } from '../shared/KidIcon';
+import { Paywall } from '../Paywall';
+import { isRoundLocked, usePremium } from '../../utils/billing';
 
 /** چیدمان افقی: نوع‌هایی که باید در یک ردیف کامل (پهنای کامل) نمایش داده شوند */
 const VERTICAL = new Set(['pattern', 'patternStrip', 'lineJump', 'sequenceGap', 'orderCards', 'compareGroups', 'makeEqual', 'compareLength', 'measureUnits', 'groupMatch']);
@@ -34,7 +36,7 @@ export function speakable(t: string) {
  * اجرای یک تمرین: چند دور، بازخورد مهربان، ستاره‌ها.
  * نمایشگرِ هر نوع فقط answer(true/false) را صدا می‌زند؛ بقیه (امتیاز، رفتن به دور بعد، ذخیره) این‌جاست.
  */
-export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; onHome?: () => void; onNext?: () => void; nextTitle?: string; nextLocked?: boolean }> = ({ def, onExit, onHome, onNext, nextTitle, nextLocked }) => {
+export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; onHome?: () => void; onNext?: () => void; nextTitle?: string }> = ({ def, onExit, onHome, onNext, nextTitle }) => {
   const total = def.rounds || 8;
   const { rotated, style } = useLandscape();
   const [slot, setSlot] = useState<HTMLElement | null>(null);
@@ -47,6 +49,9 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
   const [results, setResults] = useState<boolean[]>([]);
   const [finished, setFinished] = useState<null | number>(null);
   const [fb, setFb] = useState<FeedbackState>(null);
+  const premium = usePremium();
+  /** true وقتی کودک به مرحلهٔ قفل‌شده رسیده و پنجرهٔ پرداخت باز است */
+  const [gate, setGate] = useState(false);
   const timer = useRef(0);
   useEffect(() => {
     void enterExerciseFullscreen();
@@ -72,6 +77,9 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
           const stars = ratio >= 0.8 ? 3 : ratio >= 0.5 ? 2 : 1;
           saveResult(def.id, stars); recordActivityCompleted(stars);
           setFinished(stars); sound.speakPersian(stars === 3 ? 'آفرین! سه ستاره گرفتی' : 'آفرین! تمرین تمام شد');
+        } else if (isRoundLocked(i + 1)) {
+          // مرحلهٔ چهارم به بعد: تا پرداخت نشده، پنجرهٔ پرداخت (دور بعد شروع نمی‌شود)
+          setGate(true);
         } else { setI(i + 1); setMistakes(0); setSolved(false); }
       }, 1900);
     } else {
@@ -82,6 +90,11 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
       window.setTimeout(() => sound.speakPersian(speakable(text)), 250);
     }
   }, [solved, mistakes, def, i, total, firstTry]);
+
+  // بعد از پرداخت موفق (یا «قبلاً خریده‌ام»)، تمرین از همان مرحلهٔ چهارم ادامه می‌دهد
+  useEffect(() => {
+    if (gate && premium) { setGate(false); setI(x => x + 1); setMistakes(0); setSolved(false); }
+  }, [gate, premium]);
 
   const restart = () => { sound.playPop(); setI(0); setSession(s => s + 1); setMistakes(0); setSolved(false); setFirstTry(0); setResults([]); setFinished(null); };
   const house = HOUSES[def.house];
@@ -120,7 +133,7 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
                 <p>{toFa(firstTry)} از {toFa(total)} را بار اول درست گفتی.</p>
                 <div className="mx-finish-actions">
                   <button type="button" className="mx-tool undo" onClick={restart}><RotateCcw /> دوباره</button>
-                  {onNext && <button type="button" className="mx-tool add" onClick={() => { sound.playPop(); onNext(); }}>{nextLocked ? <span aria-hidden="true">🔒</span> : <ArrowRight />} {nextTitle || 'بعدی'}</button>}
+                  {onNext && <button type="button" className="mx-tool add" onClick={() => { sound.playPop(); onNext(); }}><ArrowRight /> {nextTitle || 'بعدی'}</button>}
                   <OkArt className="mx-ok" ready caption="برگشت به خانه" onClick={back} />
                 </div>
               </section>}
@@ -129,6 +142,7 @@ export const ExerciseRunner: React.FC<{ def: ExerciseDef; onExit: () => void; on
         </div>
       </ActionSlot.Provider>
       <FeedbackToast state={fb} onClose={() => setFb(null)} />
+      {gate && !premium && <Paywall onClose={back} />}
     </main>
   </div>;
 };

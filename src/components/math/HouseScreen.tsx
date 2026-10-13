@@ -7,12 +7,10 @@ import { sound } from '../../utils/audio';
 import { toFa } from '../../utils/fa';
 import { GameHeader } from '../shared/GameHeader';
 import { LEVEL_LABEL } from './ExerciseRunner';
-import { isLocked, usePremium } from '../../utils/billing';
 
 /** داخل هر خانه: فهرست کوتاه تمرین‌ها، از سطح ۱ تا ۳ */
 export const HouseScreen: React.FC<{ house: HouseDef; onBack: () => void; onHome: () => void; onPick: (id: string) => void }> = ({ house, onBack, onHome, onPick }) => {
   const p = useMathProgress();
-  const premium = usePremium();
   const list = exercisesOfHouse(house.id);
   const [parent, setParent] = useState(false);
   return <main className="recognition-game-screen mx-screen" dir="rtl">
@@ -24,12 +22,11 @@ export const HouseScreen: React.FC<{ house: HouseDef; onBack: () => void; onHome
       <ol className="mx-ex-list">
         {list.map((e, k) => {
           const stars = p.stars[e.id] || 0;
-          const locked = isLocked(e.id, premium);
           const ready = prereqsMet(p, e.id);
           const lv = LEVEL_LABEL[e.level];
           const missing = e.prerequisite.filter(r => !(p.stars[r] >= 1)).map(r => EXERCISE_BY_ID[r]?.title).filter(Boolean);
           return <li key={e.id}>
-            <button type="button" className={`mx-ex-card lv-${e.level} ${ready || locked ? '' : 'soft-lock'} ${locked ? 'paid-lock' : ''} ${isMastered(p, e.id) ? 'mastered' : ''}`} onClick={() => { sound.playPop(); onPick(e.id); }}>
+            <button type="button" className={`mx-ex-card lv-${e.level} ${ready ? '' : 'soft-lock'} ${isMastered(p, e.id) ? 'mastered' : ''}`} onClick={() => { sound.playPop(); onPick(e.id); }}>
               <span className="mx-ex-icon"><ExerciseIcon id={e.id} size={42} /><i>{toFa(k + 1)}</i></span>
               <span className="mx-ex-body">
                 <b>{e.title}</b>
@@ -38,9 +35,7 @@ export const HouseScreen: React.FC<{ house: HouseDef; onBack: () => void; onHome
                 {parent && <em>هدف: {e.goal}</em>}
                 {parent && !ready && missing.length > 0 && <u>بهتر است اول «{missing[0]}» را بازی کنی</u>}
               </span>
-              {locked
-                ? <i className="mx-ex-lock" role="img" aria-label="قفل؛ برای باز شدن پرداخت لازم است">🔒</i>
-                : <span className="mx-ex-stars" aria-label={`${toFa(stars)} ستاره`}>{[1, 2, 3].map(s => <i key={s} className={s <= stars ? 'on' : ''}>★</i>)}</span>}
+              <span className="mx-ex-stars" aria-label={`${toFa(stars)} ستاره`}>{[1, 2, 3].map(s => <i key={s} className={s <= stars ? 'on' : ''}>★</i>)}</span>
             </button>
           </li>;
         })}

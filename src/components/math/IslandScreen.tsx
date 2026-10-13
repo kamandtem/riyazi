@@ -13,8 +13,6 @@ import { CloseArt } from '../shared/ArtButtons';
 import { HouseScreen } from './HouseScreen';
 import { ExerciseRunner } from './ExerciseRunner';
 import { ExerciseIcon } from '../shared/KidIcon';
-import { Paywall } from '../Paywall';
-import { isLocked, usePremium } from '../../utils/billing';
 
 const HR = 258 / 246;
 /** جای ۵ خانه روی نقشهٔ دهکده (همان نقاشی‌ها و جای‌های پروژهٔ الفبا) */
@@ -31,7 +29,6 @@ export interface IslandRoute { house: HouseId | null; ex: string | null }
 export const IslandScreen: React.FC<{ island: IslandId; route: IslandRoute; go: (r: IslandRoute) => void; onBack: () => void; onHome: () => void }> = ({ island, route, go, onBack, onHome }) => {
   const def = ISLANDS.find(i => i.id === island)!;
   const p = useMathProgress();
-  const premium = usePremium();
   const [help, setHelp] = useState(false);
   useBackHandler(() => { if (help) { setHelp(false); return; } if (route.ex) { go({ house: route.house, ex: null }); return; } if (route.house) { go({ house: null, ex: null }); return; } onBack(); });
   useEffect(() => { setStatusBarColor(route.house ? '#FFD25A' : '#57C3F1'); }, [route.house]);
@@ -41,19 +38,12 @@ export const IslandScreen: React.FC<{ island: IslandId; route: IslandRoute; go: 
     const list = exercisesOfHouse(route.house);
     const idx = list.findIndex(e => e.id === ex.id);
     const next = list[idx + 1];
-    // تمرین سوم به بعد: تا پرداخت نشده، فهرست خانه با پنجرهٔ پرداخت نشان داده می‌شود.
-    // (از هر راهی که بیایند — فهرست، «بعدی»، «پیشنهاد امروز» یا «ادامه» — همین‌جا جلویشان گرفته می‌شود.)
-    // به‌محض پرداخت، premium تغییر می‌کند و خودِ تمرین باز می‌شود.
-    if (isLocked(ex.id, premium)) return <>
-      <HouseScreen house={HOUSES[route.house]} onBack={() => go({ house: null, ex: null })} onHome={onHome} onPick={id => go({ house: route.house, ex: id })} />
-      <Paywall onClose={() => go({ house: route.house, ex: null })} />
-    </>;
     return <ExerciseRunner key={ex.id} def={ex} onExit={() => go({ house: route.house, ex: null })} onHome={onHome}
-      onNext={next ? () => go({ house: route.house, ex: next.id }) : undefined} nextTitle={next?.title} nextLocked={!!next && isLocked(next.id, premium)} />;
+      onNext={next ? () => go({ house: route.house, ex: next.id }) : undefined} nextTitle={next?.title} />;
   }
   if (route.house) return <HouseScreen house={HOUSES[route.house]} onBack={() => go({ house: null, ex: null })} onHome={onHome} onPick={id => go({ house: route.house, ex: id })} />;
 
-  const rec = nextRecommended(p, id => !isLocked(id, premium));
+  const rec = nextRecommended(p);
   const recHere = def.houses.includes(EXERCISE_BY_ID[rec].house) ? EXERCISE_BY_ID[rec] : null;
   const tone = island === 'numbers' ? 'coral' : island === 'order' ? '' : 'coral';
   return <MapScreen id={`island-${island}`} map="/assets/letters-map.webp" alt={`مسیر ${def.title}`} overlay={<>
